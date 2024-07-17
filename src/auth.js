@@ -1,10 +1,23 @@
 import { createUserWithEmailAndPassword, signInWithEmailAndPassword, signOut as firebaseSignOut } from "firebase/auth";
-import { auth } from "./firebaseConfig";
+import { doc, setDoc } from "firebase/firestore";
+import { auth, db } from "./firebaseConfig";
+import { v4 as uuidv4 } from "uuid";
 
 export const signUp = async (email, password) => {
   try {
     const userCredential = await createUserWithEmailAndPassword(auth, email, password);
-    return userCredential.user;
+    const user = userCredential.user;
+
+    // Generate a unique username
+    const username = `user-${uuidv4().slice(0, 8)}`;
+
+    // Add user data to Firestore
+    await setDoc(doc(db, "users", user.uid), {
+      username: username,
+      createdAt: new Date().toISOString()
+    });
+
+    return user;
   } catch (error) {
     throw error;
   }
@@ -13,6 +26,8 @@ export const signUp = async (email, password) => {
 export const signIn = async (email, password) => {
   try {
     const userCredential = await signInWithEmailAndPassword(auth, email, password);
+    const idToken = await userCredential.user.getIdToken();
+    console.log(idToken)
     return userCredential.user;
   } catch (error) {
     throw error;
