@@ -1,6 +1,9 @@
-import React, { createContext, useContext, useEffect, useState } from 'react';
+// src/AuthProvider.js
+import { createContext, useContext, useEffect, useState } from 'react';
 import { onAuthStateChanged } from 'firebase/auth';
 import { auth } from './firebaseConfig';
+import { signOut as firebaseSignOut } from './auth';
+import { useNavigate } from 'react-router-dom';
 
 const AuthContext = createContext();
 
@@ -19,12 +22,13 @@ export const AuthProvider = ({ children }) => {
     return unsubscribe;
   }, []);
 
-  const value = {
-    currentUser,
+  const signOut = async () => {
+    await firebaseSignOut();
+    setCurrentUser(null);
   };
 
   return (
-    <AuthContext.Provider value={value}>
+    <AuthContext.Provider value={{ currentUser, signOut }}>
       {!loading && children}
     </AuthContext.Provider>
   );
