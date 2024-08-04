@@ -14,9 +14,16 @@ export const signUp = async (email, password) => {
     // Add user data to Firestore
     await setDoc(doc(db, "users", user.uid), {
       username: username,
+      profile_picture: '', // Default or empty value
+      bio: '', // Default or empty value
+      followers: [],
+      following: [],
+      liked_books: [],
+      saved_books: [],
+      public_books: [],
+      private_books: [],
       createdAt: new Date().toISOString()
     });
-
     return user;
   } catch (error) {
     throw error;
