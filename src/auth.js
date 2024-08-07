@@ -22,7 +22,16 @@ export const signUp = async (email, password) => {
       saved_books: [],
       public_books: [],
       private_books: [],
-      createdAt: new Date().toISOString()
+      ccreatedAt: new Date(Date.UTC(
+        new Date().getUTCFullYear(),
+        new Date().getUTCMonth(),
+        new Date().getUTCDate(),
+        new Date().getUTCHours(),
+        new Date().getUTCMinutes(),
+        new Date().getUTCSeconds(),
+        new Date().getUTCMilliseconds()
+      )).toISOString(),
+      id: user.uid
     });
     return user;
   } catch (error) {
