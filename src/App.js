@@ -1,5 +1,6 @@
 import React from 'react';
 import { BrowserRouter as Router, Route, Routes, Navigate } from 'react-router-dom';
+import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import SignUp from './pages/SignUp';
 import SignIn from './pages/SignIn';
 import Home from './pages/Home';
@@ -11,13 +12,18 @@ import PrivateRoute from './PrivateRoute';
 import { NavBar } from './components/navbar/NavBar';
 import "./styles/globals.css";
 
+// Create a client
+const queryClient = new QueryClient();
+
 const App = () => {
   return (
-    <Router>
-      <AuthProvider>
-        <AppRoutes />
-      </AuthProvider>
-    </Router>
+    <QueryClientProvider client={queryClient}>
+      <Router>
+        <AuthProvider>
+          <AppRoutes />
+        </AuthProvider>
+      </Router>
+    </QueryClientProvider>
   );
 };
 
