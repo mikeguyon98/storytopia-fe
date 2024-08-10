@@ -8,6 +8,7 @@ import { SplashButton } from '../components/buttons/SplashButton';
 const SignUp = () => {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+  const [error, setError] = useState(null);
   const navigate = useNavigate();
 
   const signUpMutation = useMutation({
@@ -16,12 +17,13 @@ const SignUp = () => {
       navigate('/home');
     },
     onError: (error) => {
-      // Error handling is done here
+      setError(getErrorMessage(error.code));
     }
   });
 
   const handleSignUp = async (e) => {
     e.preventDefault();
+    setError(null); // Clear any existing errors
     signUpMutation.mutate({ email, password });
   };
 
@@ -48,9 +50,9 @@ const SignUp = () => {
         </div>
 
         <div className="mt-10 sm:mx-auto sm:w-full sm:max-w-sm">
-          {signUpMutation.isError && (
+          {error && (
             <div className="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded relative mb-4" role="alert">
-              <span className="block sm:inline">{getErrorMessage(signUpMutation.error.code)}</span>
+              <span className="block sm:inline">{error}</span>
             </div>
           )}
           <form className="space-y-6" onSubmit={handleSignUp}>
@@ -65,9 +67,10 @@ const SignUp = () => {
                   type="email"
                   autoComplete="email"
                   required
-                  className="block w-full rounded-md border-0 bg-white/5 py-1.5 text-white shadow-sm ring-1 ring-inset ring-white/10 focus:ring-2 focus:ring-inset focus:ring-indigo-600 sm:text-sm sm:leading-6"
+                  className="block w-full rounded-md border-0 bg-white/5 py-1.5 text-white shadow-sm ring-1 ring-inset ring-white/10 focus:ring-2 focus:ring-inset focus:ring-indigo-600 sm:text-sm sm:leading-6 px-3"
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
+                  placeholder="Enter your email"
                 />
               </div>
             </div>
@@ -83,9 +86,10 @@ const SignUp = () => {
                   type="password"
                   autoComplete="new-password"
                   required
-                  className="block w-full rounded-md border-0 bg-white/5 py-1.5 text-white shadow-sm ring-1 ring-inset ring-white/10 focus:ring-2 focus:ring-inset focus:ring-indigo-600 sm:text-sm sm:leading-6"
+                  className="block w-full rounded-md border-0 bg-white/5 py-1.5 text-white shadow-sm ring-1 ring-inset ring-white/10 focus:ring-2 focus:ring-inset focus:ring-indigo-600 sm:text-sm sm:leading-6 px-3"
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
+                  placeholder="Enter your password"
                 />
               </div>
             </div>
