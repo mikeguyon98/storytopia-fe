@@ -8,7 +8,7 @@ import { Pencil } from '../icons/Pencil';
 export const Heading = () => {
   
     return (
-      <div className='max-w-lg'>
+      <div className='max-w-lg mx-auto z-1'>
         <div className='flex w-full justify-between items-center gap-4 py-5'>
             <div className='text-zinc-400'>mike_guyon</div>
                 <GhostButton className={'text-zinc-400'} >

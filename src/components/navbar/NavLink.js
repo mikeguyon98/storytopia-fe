@@ -18,7 +18,7 @@ export const NavLink = ({ children, external, to = "/home" }) => {
       rel="nofollow"
       target={external ? "_blank" : undefined}
       onClick={handleClick}
-      className="group flex items-center gap-0.5 text-xs text-zinc-200 transition-colors hover:text-zinc-50 sm:text-sm"
+      className="group flex items-center gap-0.5 text-m font-semibold text-zinc-200 transition-colors hover:text-zinc-50 sm:text-sm"
     >
       <span>{children}</span>
       {external && (
