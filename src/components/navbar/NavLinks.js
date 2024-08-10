@@ -6,18 +6,13 @@ export const NavLinks = () => {
   return (
     <ul className="flex gap-3 text-zinc-400 md:gap-9">
       <li>
-        <NavLink>Features</NavLink>
+        <NavLink>Explore</NavLink>
       </li>
       <li>
-        <NavLink>Testimonials</NavLink>
+        <NavLink>Create</NavLink>
       </li>
       <li>
-        <NavLink>Pricing</NavLink>
-      </li>
-      <li>
-        <NavLink>
-          Careers
-        </NavLink>
+        <NavLink>About</NavLink>
       </li>
     </ul>
   );
