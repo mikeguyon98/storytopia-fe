@@ -1,5 +1,5 @@
-// pages/ForgetPassword.js
 import React, { useState } from 'react';
+import { useMutation } from '@tanstack/react-query';
 import { sendPasswordResetEmail } from '../auth';
 import { useNavigate, Link } from 'react-router-dom';
 import Page from '../components/utils/Page';
@@ -7,22 +7,19 @@ import { SplashButton } from '../components/buttons/SplashButton';
 
 const ForgetPassword = () => {
   const [email, setEmail] = useState('');
-  const [error, setError] = useState(null);
-  const [success, setSuccess] = useState(false);
   const navigate = useNavigate();
+
+  const resetPasswordMutation = useMutation({
+    mutationFn: (email) => sendPasswordResetEmail(email),
+    onSuccess: () => {
+      // Optionally, you can redirect the user after a few seconds
+      setTimeout(() => navigate('/signin'), 5000);
+    },
+  });
 
   const handleResetPassword = async (e) => {
     e.preventDefault();
-    try {
-      await sendPasswordResetEmail(email);
-      setSuccess(true);
-      setError(null);
-      // Optionally, you can redirect the user after a few seconds
-      setTimeout(() => navigate('/signin'), 5000);
-    } catch (error) {
-      setError(getErrorMessage(error.code));
-      setSuccess(false);
-    }
+    resetPasswordMutation.mutate(email);
   };
 
   const getErrorMessage = (errorCode) => {
@@ -46,12 +43,12 @@ const ForgetPassword = () => {
         </div>
 
         <div className="mt-10 sm:mx-auto sm:w-full sm:max-w-sm">
-          {error && (
+          {resetPasswordMutation.isError && (
             <div className="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded relative mb-4" role="alert">
-              <span className="block sm:inline">{error}</span>
+              <span className="block sm:inline">{getErrorMessage(resetPasswordMutation.error.code)}</span>
             </div>
           )}
-          {success && (
+          {resetPasswordMutation.isSuccess && (
             <div className="bg-green-100 border border-green-400 text-green-700 px-4 py-3 rounded relative mb-4" role="alert">
               <span className="block sm:inline">Password reset email sent. Check your inbox.</span>
             </div>
@@ -68,16 +65,21 @@ const ForgetPassword = () => {
                   type="email"
                   autoComplete="email"
                   required
-                  className="block w-full rounded-md border-0 bg-white/5 py-1.5 text-white shadow-sm ring-1 ring-inset ring-white/10 focus:ring-2 focus:ring-inset focus:ring-indigo-600 sm:text-sm sm:leading-6"
+                  className="block w-full rounded-md border-0 bg-white/5 py-1.5 text-white shadow-sm ring-1 ring-inset ring-white/10 focus:ring-2 focus:ring-inset focus:ring-indigo-600 sm:text-sm sm:leading-6 px-3"
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
+                  placeholder="Enter your email"
                 />
               </div>
             </div>
 
             <div>
-              <SplashButton type="submit" className="w-full">
-                Reset Password
+              <SplashButton 
+                type="submit" 
+                className="w-full"
+                disabled={resetPasswordMutation.isLoading}
+              >
+                {resetPasswordMutation.isLoading ? 'Sending...' : 'Reset Password'}
               </SplashButton>
             </div>
           </form>
