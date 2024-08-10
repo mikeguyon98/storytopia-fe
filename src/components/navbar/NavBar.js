@@ -4,8 +4,9 @@ import { NavLogo } from "./NavLogo";
 import { NavLinks } from "./NavLinks";
 import { NavCTAs } from "./NavCTAs";
 import { useMotionValueEvent, useScroll, motion } from "framer-motion";
+import { NavAccount } from "./NavAccount";
 
-export const NavBar = () => {
+export const NavBar = ({currentUser}) => {
   const [scrolled, setScrolled] = useState(false);
   const { scrollY } = useScroll();
 
@@ -38,10 +39,10 @@ export const NavBar = () => {
           <div className="flex items-center gap-12">
             <NavLogo />
             <div className="hidden md:block">
-              <NavLinks />
+            {currentUser && <NavLinks />}
             </div>
           </div>
-          <NavCTAs />
+          {currentUser ? <NavAccount /> : <NavCTAs />}
         </div>
         <div className="block pt-1.5 md:hidden">
           <NavLinks />
