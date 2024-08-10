@@ -7,7 +7,7 @@ import { Private } from "../icons/Private"
 export const Tabs = ({tabData, selected, setSelected}) => {
   return (
     <div>
-      <div className="grid max-w-4xl grid-cols-2 gap-4 py-12 lg:grid-cols-4">
+      <div className="grid max-w-4xl grid-cols-2 gap-4 py-12 lg:grid-cols-4 mx-auto">
         {tabData.map((t) => (
           <ToggleButton
             key={t.id}
