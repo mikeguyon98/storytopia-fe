@@ -1,6 +1,10 @@
 import React, { useState } from 'react';
 import { signIn } from '../auth';
 import { useNavigate } from 'react-router-dom';
+import { Email } from '../components/signin/Email';
+import { Heading } from '../components/signin/Heading'
+import Page from '../components/utils/Page';
+
 
 const SignIn = () => {
   const [email, setEmail] = useState('');
@@ -8,7 +12,8 @@ const SignIn = () => {
   const [error, setError] = useState(null);
   const navigate = useNavigate();
 
-  const handleSignIn = async () => {
+  const handleSignIn = async (e) => {
+    e.preventDefault();
     try {
       await signIn(email, password);
       navigate('/home'); // Redirect to home page on successful sign-in
@@ -18,24 +23,23 @@ const SignIn = () => {
   };
 
   return (
-    <div>
-      <h1>Sign In</h1>
-      <input
-        type="email"
-        value={email}
-        onChange={(e) => setEmail(e.target.value)}
-        placeholder="Email"
-      />
-      <input
-        type="password"
-        value={password}
-        onChange={(e) => setPassword(e.target.value)}
-        placeholder="Password"
-      />
-      <button onClick={handleSignIn}>Sign In</button>
-      {error && <p>{error}</p>}
-    </div>
+    <Page>
+     <div className="w-full">
+      <div className="max-w-lg mx-auto">
+          {error && <p>{error}</p>}
+          <Heading />
+          <Email 
+            password={password} 
+            setPassword={setPassword} 
+            email={email}
+            setEmail={setEmail}
+            onSubmit={handleSignIn}
+          />
+        </div>
+      </div>
+    </Page>
   );
 };
+
 
 export default SignIn;

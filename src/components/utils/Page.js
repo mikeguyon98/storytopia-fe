@@ -1,10 +1,13 @@
 import React from 'react';
+import { MaxWidthWrapper } from './MaxWidthWrapper';
 
 const Page = ({ children }) => {
   return (
-    <div className="mt-16 mx-4 md:mx-8 lg:mx-16 w-full">
-      {children}
-    </div>
+    <MaxWidthWrapper>
+        <div className="mt-16">
+        {children}
+        </div>
+    </MaxWidthWrapper>
   );
 };
 

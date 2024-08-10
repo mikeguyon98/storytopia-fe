@@ -4,6 +4,7 @@ import SignUp from './pages/SignUp';
 import SignIn from './pages/SignIn';
 import Home from './pages/Home';
 import Main from './pages/Main';
+import Profile from './pages/Profile'
 // import NavBar from './components/NavBar';
 import { AuthProvider, useAuth } from './AuthProvider';
 import PrivateRoute from './PrivateRoute';
@@ -25,7 +26,7 @@ const AppRoutes = () => {
 
   return (
     <div className='"bg-black min-h-screen text-white"'>
-      <NavBar />
+      <NavBar currentUser = {currentUser}/>
       <Routes>
         <Route path="/" element={!currentUser ? <Main /> : <Navigate to="/home" />} />
         <Route path="/signup" element={<SignUp />} />
@@ -35,6 +36,14 @@ const AppRoutes = () => {
           element={
             <PrivateRoute>
               <Home />
+            </PrivateRoute>
+          }
+        />
+        <Route
+          path="/profile"
+          element={
+            <PrivateRoute>
+              <Profile />
             </PrivateRoute>
           }
         />
