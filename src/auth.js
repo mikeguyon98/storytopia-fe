@@ -1,4 +1,9 @@
-import { createUserWithEmailAndPassword, signInWithEmailAndPassword, signOut as firebaseSignOut } from "firebase/auth";
+import { 
+  createUserWithEmailAndPassword, 
+  signInWithEmailAndPassword, 
+  signOut as firebaseSignOut,
+  sendPasswordResetEmail as firebaseSendPasswordResetEmail
+} from "firebase/auth";
 import { doc, setDoc } from "firebase/firestore";
 import { auth, db } from "./firebaseConfig";
 import { v4 as uuidv4 } from "uuid";
@@ -53,6 +58,14 @@ export const signIn = async (email, password) => {
 export const signOut = async () => {
   try {
     await firebaseSignOut(auth);
+  } catch (error) {
+    throw error;
+  }
+};
+
+export const sendPasswordResetEmail = async (email) => {
+  try {
+    await firebaseSendPasswordResetEmail(auth, email);
   } catch (error) {
     throw error;
   }

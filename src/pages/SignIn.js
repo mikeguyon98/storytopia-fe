@@ -1,7 +1,7 @@
 // pages/SignIn.js
 import React, { useState } from 'react';
 import { signIn } from '../auth';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, Link } from 'react-router-dom';
 import { Email } from '../components/signin/Email';
 import { Heading } from '../components/signin/Heading'
 import Page from '../components/utils/Page';
@@ -53,6 +53,11 @@ const SignIn = () => {
             setEmail={setEmail}
             onSubmit={handleSignIn}
           />
+          <div className="text-center mt-4">
+            <Link to="/forget-password" className="text-blue-500 hover:text-blue-700">
+              Forgot Password?
+            </Link>
+          </div>
         </div>
       </div>
     </Page>
