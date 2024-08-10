@@ -4,6 +4,7 @@ import SignUp from './pages/SignUp';
 import SignIn from './pages/SignIn';
 import Home from './pages/Home';
 import Main from './pages/Main';
+import Profile from './pages/Profile'
 // import NavBar from './components/NavBar';
 import { AuthProvider, useAuth } from './AuthProvider';
 import PrivateRoute from './PrivateRoute';
@@ -35,6 +36,14 @@ const AppRoutes = () => {
           element={
             <PrivateRoute>
               <Home />
+            </PrivateRoute>
+          }
+        />
+        <Route
+          path="/profile"
+          element={
+            <PrivateRoute>
+              <Profile />
             </PrivateRoute>
           }
         />
