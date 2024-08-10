@@ -25,7 +25,7 @@ const AppRoutes = () => {
 
   return (
     <div className='"bg-black min-h-screen text-white"'>
-      <NavBar />
+      <NavBar currentUser = {currentUser}/>
       <Routes>
         <Route path="/" element={!currentUser ? <Main /> : <Navigate to="/home" />} />
         <Route path="/signup" element={<SignUp />} />
