@@ -4,9 +4,11 @@ import SignUp from './pages/SignUp';
 import SignIn from './pages/SignIn';
 import Home from './pages/Home';
 import Main from './pages/Main';
-import NavBar from './components/NavBar';
+// import NavBar from './components/NavBar';
 import { AuthProvider, useAuth } from './AuthProvider';
 import PrivateRoute from './PrivateRoute';
+import { NavBar } from './components/navbar/NavBar'
+import "./styles/globals.css";
 
 const App = () => {
   return (
@@ -22,8 +24,8 @@ const AppRoutes = () => {
   const { currentUser } = useAuth();
 
   return (
-    <>
-      {currentUser && <NavBar />}
+    <div className='"bg-black min-h-screen text-white"'>
+      <NavBar />
       <Routes>
         <Route path="/" element={!currentUser ? <Main /> : <Navigate to="/home" />} />
         <Route path="/signup" element={<SignUp />} />
@@ -37,7 +39,7 @@ const AppRoutes = () => {
           }
         />
       </Routes>
-    </>
+    </div>
   );
 };
 
