@@ -1,8 +1,9 @@
 // pages/ForgetPassword.js
 import React, { useState } from 'react';
 import { sendPasswordResetEmail } from '../auth';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, Link } from 'react-router-dom';
 import Page from '../components/utils/Page';
+import { SplashButton } from '../components/buttons/SplashButton';
 
 const ForgetPassword = () => {
   const [email, setEmail] = useState('');
@@ -37,42 +38,56 @@ const ForgetPassword = () => {
 
   return (
     <Page>
-      <div className="w-full">
-        <div className="max-w-lg mx-auto">
-          <h2 className="text-2xl font-bold mb-4">Forgot Password</h2>
+      <div className="flex min-h-full flex-1 flex-col justify-center px-6 py-12 lg:px-8">
+        <div className="sm:mx-auto sm:w-full sm:max-w-sm">
+          <h2 className="mt-10 text-center text-2xl font-bold leading-9 tracking-tight text-white">
+            Forgot Password
+          </h2>
+        </div>
+
+        <div className="mt-10 sm:mx-auto sm:w-full sm:max-w-sm">
           {error && (
             <div className="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded relative mb-4" role="alert">
-              <strong className="font-bold">Error: </strong>
               <span className="block sm:inline">{error}</span>
             </div>
           )}
           {success && (
             <div className="bg-green-100 border border-green-400 text-green-700 px-4 py-3 rounded relative mb-4" role="alert">
-              <strong className="font-bold">Success: </strong>
               <span className="block sm:inline">Password reset email sent. Check your inbox.</span>
             </div>
           )}
-          <form onSubmit={handleResetPassword}>
-            <div className="mb-4">
-              <label htmlFor="email" className="block text-gray-700 text-sm font-bold mb-2">
-                Email
+          <form className="space-y-6" onSubmit={handleResetPassword}>
+            <div>
+              <label htmlFor="email" className="block text-sm font-medium leading-6 text-white">
+                Email address
               </label>
-              <input
-                type="email"
-                id="email"
-                className="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
-                required
-              />
+              <div className="mt-2">
+                <input
+                  id="email"
+                  name="email"
+                  type="email"
+                  autoComplete="email"
+                  required
+                  className="block w-full rounded-md border-0 bg-white/5 py-1.5 text-white shadow-sm ring-1 ring-inset ring-white/10 focus:ring-2 focus:ring-inset focus:ring-indigo-600 sm:text-sm sm:leading-6"
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
+                />
+              </div>
             </div>
-            <button
-              type="submit"
-              className="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline"
-            >
-              Reset Password
-            </button>
+
+            <div>
+              <SplashButton type="submit" className="w-full">
+                Reset Password
+              </SplashButton>
+            </div>
           </form>
+
+          <p className="mt-10 text-center text-sm text-gray-400">
+            Remember your password?{' '}
+            <Link to="/signin" className="font-semibold leading-6 text-indigo-600 hover:text-indigo-500">
+              Sign in
+            </Link>
+          </p>
         </div>
       </div>
     </Page>
