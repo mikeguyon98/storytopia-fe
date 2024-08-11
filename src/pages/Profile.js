@@ -1,20 +1,17 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
+import { useQuery } from '@tanstack/react-query';
 import axios from 'axios';
 import Page from '../components/utils/Page';
 import { Heading } from '../components/profile/Heading';
 import { Tabs } from '../components/profile/Tabs'
 import { Tile } from '../components/Tile';
 import { useAuth } from '../AuthProvider';
-import { GhostButton } from '../components/buttons/GhostButton';
 
 const BASE_URL = 'http://localhost:8000';
 
 const Profile = () => {
   const { currentUser } = useAuth();
   const [selected, setSelected] = useState(1);
-  const [stories, setStories] = useState([]);
-  const [isLoading, setIsLoading] = useState(false);
-  const [error, setError] = useState(null);
 
   const getEndpoint = (tabId) => {
     switch (tabId) {
@@ -26,35 +23,25 @@ const Profile = () => {
     }
   };
 
-  useEffect(() => {
-    console.log(currentUser)
-    const fetchStories = async () => {
-      if (!currentUser) {
-        setError('User not authenticated');
-        return;
+  const fetchStories = async () => {
+    if (!currentUser) {
+      throw new Error('User not authenticated');
+    }
+    const token = currentUser.accessToken;
+    const endpoint = getEndpoint(selected);
+    const response = await axios.get(`${BASE_URL}${endpoint}`, {
+      headers: {
+        Authorization: `Bearer ${token}`
       }
+    });
+    return response.data;
+  };
 
-      setIsLoading(true);
-      setError(null);
-
-      try {
-        const token = currentUser.accessToken;
-        const endpoint = getEndpoint(selected);
-        const response = await axios.get(`${BASE_URL}${endpoint}`, {
-          headers: {
-            Authorization: `Bearer ${token}`
-          }
-        });
-        setStories(response.data);
-      } catch (err) {
-        setError(err.message || 'An error occurred while fetching stories');
-      } finally {
-        setIsLoading(false);
-      }
-    };
-
-    fetchStories();
-  }, [currentUser, selected]);
+  const { data: stories, isLoading, error } = useQuery({
+    queryKey: ['stories', selected],
+    queryFn: fetchStories,
+    enabled: !!currentUser,
+  });
 
   if (!currentUser) {
     return <Page><p>Please log in to view your profile.</p></Page>;
@@ -62,16 +49,16 @@ const Profile = () => {
 
   return (
     <Page>
-      <Heading />
+      <Heading currentUser = {currentUser}/>
       <Tabs tabData={TAB_DATA} selected={selected} setSelected={setSelected} />
       <div className='w-full border border-b-1'></div>
       <div className="grid grid-cols-3 gap-1 my-2">
         {isLoading ? (
           <p>Loading...</p>
         ) : error ? (
-          <p>Error: {error}</p>
+          <p>Error: {error.message}</p>
         ) : (
-          stories.map((story) => (
+          stories && stories.map((story) => (
             <Tile 
               key={story.id}
               image={story.story_images[0]}
@@ -80,9 +67,6 @@ const Profile = () => {
             />
           ))
         )}
-        <GhostButton onClick={() => console.log(currentUser)}>
-          Test
-        </GhostButton>
       </div>
     </Page>
   );
