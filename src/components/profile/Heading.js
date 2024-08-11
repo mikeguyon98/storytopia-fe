@@ -4,13 +4,13 @@ import axios from 'axios';
 import { GhostButton } from '../buttons/GhostButton';
 import { Settings } from './Settings';
 import { Pencil } from '../icons/Pencil';
-import { useAuth } from '../../AuthProvider'; // Adjust the import path as needed
-import { SettingsMenu } from './SettingsMenu'; // Import the SettingsMenu component
+import { useAuth } from '../../AuthProvider';
+import { SettingsMenu } from './SettingsMenu';
 import { signOut } from '../../auth';
 
-const BASE_URL = 'http://localhost:8000'; // Adjust this as needed
+const BASE_URL = 'http://localhost:8000';
 
-export const Heading = () => {
+export const Heading = ({ onEditProfile }) => {
   const { currentUser } = useAuth();
   const [menuOpen, setMenuOpen] = useState(false);
 
@@ -18,7 +18,7 @@ export const Heading = () => {
     if (!currentUser) {
       throw new Error('User not authenticated');
     }
-    const token = currentUser.accessToken;
+    const token = await currentUser.getIdToken();
     const response = await axios.get(`${BASE_URL}/users/me`, {
       headers: {
         Authorization: `Bearer ${token}`
@@ -44,7 +44,7 @@ export const Heading = () => {
     <div className='max-w-lg mx-auto z-1 relative'>
       <div className='flex w-full justify-between items-center gap-4 py-5'>
         <div className='text-zinc-400'>@{userDetails?.username || 'N/A'}</div>
-        <GhostButton className={'text-zinc-400'}>
+        <GhostButton className={'text-zinc-400'} onClick={onEditProfile}>
           <div className="mx-auto flex items-start gap-2 w-fit">
             Edit profile
             <Pencil />
