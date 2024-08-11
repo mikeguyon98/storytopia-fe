@@ -11,6 +11,7 @@ import { AuthProvider, useAuth } from './AuthProvider';
 import PrivateRoute from './PrivateRoute';
 import { NavBar } from './components/navbar/NavBar';
 import "./styles/globals.css";
+import Explore from './pages/Explore';
 
 // Create a client
 const queryClient = new QueryClient();
@@ -50,6 +51,14 @@ const AppRoutes = () => {
           element={
             <PrivateRoute>
               <Profile />
+            </PrivateRoute>
+          }
+        />
+        <Route
+          path="/explore"
+          element={
+            <PrivateRoute>
+              <Explore />
             </PrivateRoute>
           }
         />

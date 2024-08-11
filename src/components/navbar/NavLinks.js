@@ -6,7 +6,7 @@ export const NavLinks = () => {
   return (
     <ul className="flex gap-3 text-zinc-400 md:gap-9">
       <li>
-        <NavLink>Explore</NavLink>
+        <NavLink to="explore">Explore</NavLink>
       </li>
       <li>
         <NavLink>Create</NavLink>
