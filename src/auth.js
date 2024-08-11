@@ -27,7 +27,7 @@ export const signUp = async (email, password) => {
       saved_books: [],
       public_books: [],
       private_books: [],
-      ccreatedAt: new Date(Date.UTC(
+      createdAt: new Date(Date.UTC(
         new Date().getUTCFullYear(),
         new Date().getUTCMonth(),
         new Date().getUTCDate(),
