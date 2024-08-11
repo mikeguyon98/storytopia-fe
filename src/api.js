@@ -1,8 +1,8 @@
-import axios from 'axios';
-import { useAuth } from './AuthProvider';
+import axios from "axios";
+import { useAuth } from "./AuthProvider";
 
 const api = axios.create({
-  baseURL: 'http://localhost:8000', // Replace with your FastAPI base URL
+  baseURL: "https://storytopia-fastapi-kgdwevjo6a-ue.a.run.app", // Replace with your FastAPI base URL
 });
 
 // Set up an interceptor to include the token in all requests
