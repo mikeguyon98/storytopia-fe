@@ -12,6 +12,7 @@ import PrivateRoute from './PrivateRoute';
 import { NavBar } from './components/navbar/NavBar';
 import "./styles/globals.css";
 import Explore from './pages/Explore';
+import Create from './pages/Create';
 
 // Create a client
 const queryClient = new QueryClient();
@@ -59,6 +60,14 @@ const AppRoutes = () => {
           element={
             <PrivateRoute>
               <Explore />
+            </PrivateRoute>
+          }
+        />
+        <Route
+          path="/create"
+          element={
+            <PrivateRoute>
+              <Create />
             </PrivateRoute>
           }
         />
