@@ -29,6 +29,7 @@ const Profile = () => {
   };
 
   const fetchStories = async () => {
+    console.log(currentUser.reloadUserInfo.localId)
     if (!currentUser) {
       throw new Error('User not authenticated');
     }

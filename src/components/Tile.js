@@ -43,11 +43,11 @@ export const Tile = ({ image, likes, saves }) => {
                 >
                   <div className="mx-auto flex items-center gap-2 w-fit">
                     <SolidHeart />
-                    {likes}
+                    {likes.length}
                   </div>
                   <div className="mx-auto flex items-center gap-2 w-fit">
                     <SolidBookmark />
-                    {saves}
+                    {saves.length}
                   </div>
                 </motion.h1>
               </motion.div>
