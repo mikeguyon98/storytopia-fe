@@ -152,6 +152,7 @@ const Profile = () => {
           stories.map((story) => (
             <Tile
               key={story.id}
+              storyId={story.id}
               image={story.story_images[0]}
               likes={story.likes}
               saves={story.saves}
