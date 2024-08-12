@@ -1,62 +1,70 @@
-import React, { useState } from 'react';
-import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import axios from 'axios';
-import Page from '../components/utils/Page';
-import { Heading } from '../components/profile/Heading';
-import { Tabs } from '../components/profile/Tabs'
-import { Tile } from '../components/Tile';
-import { useAuth } from '../AuthProvider';
-import { GhostButton } from '../components/buttons/GhostButton';
+import React, { useState } from "react";
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import axios from "axios";
+import Page from "../components/utils/Page";
+import { Heading } from "../components/profile/Heading";
+import { Tabs } from "../components/profile/Tabs";
+import { Tile } from "../components/Tile";
+import { useAuth } from "../AuthProvider";
+import { GhostButton } from "../components/buttons/GhostButton";
 
-const BASE_URL = 'http://localhost:8000';
-
+const BASE_URL = "https://storytopia-fastapi-kgdwevjo6a-ue.a.run.app";
 const Profile = () => {
   const { currentUser } = useAuth();
   const [selected, setSelected] = useState(1);
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
-  const [newUsername, setNewUsername] = useState('');
-  const [errorMessage, setErrorMessage] = useState('');
+  const [newUsername, setNewUsername] = useState("");
+  const [errorMessage, setErrorMessage] = useState("");
   const queryClient = useQueryClient();
 
   const getEndpoint = (tabId) => {
     switch (tabId) {
-      case 1: return '/users/me/public_posts';
-      case 2: return '/users/me/private_posts';
-      case 3: return '/users/me/saved_posts';
-      case 4: return '/users/me/liked_posts';
-      default: return '/users/me/public_posts';
+      case 1:
+        return "/users/me/public_posts";
+      case 2:
+        return "/users/me/private_posts";
+      case 3:
+        return "/users/me/saved_posts";
+      case 4:
+        return "/users/me/liked_posts";
+      default:
+        return "/users/me/public_posts";
     }
   };
 
   const fetchStories = async () => {
-    console.log(currentUser.reloadUserInfo.localId)
+    console.log(currentUser.reloadUserInfo.localId);
     if (!currentUser) {
-      throw new Error('User not authenticated');
+      throw new Error("User not authenticated");
     }
     const token = await currentUser.getIdToken();
     const endpoint = getEndpoint(selected);
     const response = await axios.get(`${BASE_URL}${endpoint}`, {
       headers: {
-        Authorization: `Bearer ${token}`
-      }
+        Authorization: `Bearer ${token}`,
+      },
     });
     return response.data;
   };
 
-  const { data: stories, isLoading, error } = useQuery({
-    queryKey: ['stories', selected],
+  const {
+    data: stories,
+    isLoading,
+    error,
+  } = useQuery({
+    queryKey: ["stories", selected],
     queryFn: fetchStories,
     enabled: !!currentUser,
   });
 
   const updateUsername = useMutation({
     mutationFn: async (newUsername) => {
-      if (!currentUser) throw new Error('User not authenticated');
+      if (!currentUser) throw new Error("User not authenticated");
       const token = await currentUser.getIdToken();
-      
+
       // Fetch current user details
       const currentUserResponse = await axios.get(`${BASE_URL}/users/me`, {
-        headers: { Authorization: `Bearer ${token}` }
+        headers: { Authorization: `Bearer ${token}` },
       });
       const currentUserData = currentUserResponse.data;
 
@@ -70,39 +78,51 @@ const Profile = () => {
         liked_books: currentUserData.liked_books || [],
         saved_books: currentUserData.saved_books || [],
         public_books: currentUserData.public_books || [],
-        private_books: currentUserData.private_books || []
+        private_books: currentUserData.private_books || [],
       };
 
       // Send PUT request to update user details
-      const response = await axios.put(`${BASE_URL}/users/me`, updatedUserData, {
-        headers: { Authorization: `Bearer ${token}` }
-      });
-      
+      const response = await axios.put(
+        `${BASE_URL}/users/me`,
+        updatedUserData,
+        {
+          headers: { Authorization: `Bearer ${token}` },
+        }
+      );
+
       return response.data;
     },
     onSuccess: () => {
-      queryClient.invalidateQueries(['userDetails']);
+      queryClient.invalidateQueries(["userDetails"]);
       setIsEditModalOpen(false);
-      setErrorMessage('');
+      setErrorMessage("");
     },
     onError: (error) => {
-      if (error.response && error.response.status === 400 && error.response.data.detail === "Username already exists") {
-        setErrorMessage("This username is already taken. Please choose a different one.");
+      if (
+        error.response &&
+        error.response.status === 400 &&
+        error.response.data.detail === "Username already exists"
+      ) {
+        setErrorMessage(
+          "This username is already taken. Please choose a different one."
+        );
       } else {
-        setErrorMessage("An error occurred while updating your username. Please try again.");
+        setErrorMessage(
+          "An error occurred while updating your username. Please try again."
+        );
       }
-      console.error('Error updating username:', error);
-    }
+      console.error("Error updating username:", error);
+    },
   });
 
   const handleEditProfile = () => {
-    setNewUsername('');
-    setErrorMessage('');
+    setNewUsername("");
+    setErrorMessage("");
     setIsEditModalOpen(true);
   };
 
   const handleSaveUsername = () => {
-    if (newUsername.trim() === '') {
+    if (newUsername.trim() === "") {
       setErrorMessage("Username cannot be empty.");
       return;
     }
@@ -110,21 +130,26 @@ const Profile = () => {
   };
 
   if (!currentUser) {
-    return <Page><p>Please log in to view your profile.</p></Page>;
+    return (
+      <Page>
+        <p>Please log in to view your profile.</p>
+      </Page>
+    );
   }
 
   return (
     <Page>
       <Heading onEditProfile={handleEditProfile} />
       <Tabs tabData={TAB_DATA} selected={selected} setSelected={setSelected} />
-      <div className='w-full border border-b-1'></div>
+      <div className="w-full border border-b-1"></div>
       <div className="grid grid-cols-3 gap-1 my-2">
         {isLoading ? (
           <p>Loading...</p>
         ) : error ? (
           <p>Error: {error.message}</p>
         ) : (
-          stories && stories.map((story) => (
+          stories &&
+          stories.map((story) => (
             <Tile
               key={story.id}
               image={story.story_images[0]}
@@ -152,21 +177,21 @@ const Profile = () => {
               className="w-full px-3 py-2 bg-neutral-700 border border-neutral-600 rounded-md focus:outline-none focus:ring-2 focus:ring-indigo-600 mb-4 text-white"
             />
             <div className="flex justify-end space-x-2">
-              <GhostButton 
+              <GhostButton
                 onClick={() => {
                   setIsEditModalOpen(false);
-                  setErrorMessage('');
-                }} 
+                  setErrorMessage("");
+                }}
                 className="text-zinc-400 hover:text-white"
               >
                 Cancel
               </GhostButton>
-              <GhostButton 
-                onClick={handleSaveUsername} 
+              <GhostButton
+                onClick={handleSaveUsername}
                 disabled={updateUsername.isLoading}
                 className="bg-indigo-600 hover:bg-indigo-700 text-white px-4 py-2 rounded-md"
               >
-                {updateUsername.isLoading ? 'Saving...' : 'Save'}
+                {updateUsername.isLoading ? "Saving..." : "Save"}
               </GhostButton>
             </div>
           </div>

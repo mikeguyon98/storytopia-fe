@@ -6,7 +6,7 @@ import { NavCTAs } from "./NavCTAs";
 import { useMotionValueEvent, useScroll, motion } from "framer-motion";
 import { NavAccount } from "./NavAccount";
 
-export const NavBar = ({currentUser}) => {
+export const NavBar = ({ currentUser }) => {
   const [scrolled, setScrolled] = useState(false);
   const { scrollY } = useScroll();
 
@@ -32,15 +32,15 @@ export const NavBar = ({currentUser}) => {
         duration: 1.25,
         ease: "easeInOut",
       }}
-      className={`fixed left-0 right-0 top-0 z-50 bg-zinc-950/0 py-3 transition-colors ${scrolled && "bg-zinc-950/80 backdrop-blur"}`}
+      className={`fixed left-0 right-0 top-0 z-50 bg-zinc-950/0 py-3 transition-colors ${
+        scrolled && "bg-zinc-950/80 backdrop-blur"
+      }`}
     >
       <MaxWidthWrapper>
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-12">
             <NavLogo />
-            <div className="hidden md:block">
-            {currentUser && <NavLinks />}
-            </div>
+            <div className="hidden md:block">{currentUser && <NavLinks />}</div>
           </div>
           {currentUser ? <NavAccount /> : <NavCTAs />}
         </div>
