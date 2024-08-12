@@ -4,7 +4,6 @@ import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { useParams, Link } from "react-router-dom";
 import axios from "axios";
 import { FaLock, FaLockOpen, FaPlay, FaVolumeMute, FaVolumeUp, FaTimes } from "react-icons/fa";
-import { ChevronLeftIcon, ChevronRightIcon } from "@heroicons/react/24/solid";
 import { motion, AnimatePresence } from "framer-motion";
 
 const BASE_URL = "http://localhost:8000";
@@ -135,12 +134,29 @@ export default function Book() {
     };
   }, [handleAudioEnd]);
 
+  const handlePageClick = (event) => {
+    if (!story) return;
+    const { clientX, target } = event;
+    const { left, width } = target.getBoundingClientRect();
+    const clickPosition = clientX - left;
+
+    if (clickPosition < width / 2) {
+      setCurrentPage((p) => Math.max(p - 1, 0));
+    } else {
+      setCurrentPage((p) => Math.min(p + 1, story.story_pages.length - 1));
+    }
+  };
+
   if (storyLoading) {
     return <div className="flex justify-center items-center h-screen">Loading...</div>;
   }
 
   if (error) {
     return <div className="flex justify-center items-center h-screen">Error: {error.message}</div>;
+  }
+
+  if (!story) {
+    return <div className="flex justify-center items-center h-screen">No story data available</div>;
   }
 
   const isCurrentUserAuthor = currentUser && story.author_id === currentUser.uid;
@@ -161,11 +177,13 @@ export default function Book() {
             >
               <FaTimes />
             </button>
-            <img
-              src={story.story_images[currentPage]}
-              alt={`Page ${currentPage + 1}`}
-              className="max-w-full max-h-[70vh] object-contain mb-8"
-            />
+            <div className="relative w-full h-[70vh]" onClick={handlePageClick}>
+              <img
+                src={story.story_images[currentPage]}
+                alt={`Page ${currentPage + 1}`}
+                className="w-full h-full object-contain"
+              />
+            </div>
             <div className="text-container mt-3 mb-2 px-4 text-white w-full max-w-4xl">
               <p className="text-center" style={{
                 fontSize: "1.35rem",
@@ -176,12 +194,6 @@ export default function Book() {
             </div>
             <div className="flex justify-center mt-4 space-x-4">
               <button
-                onClick={() => setCurrentPage((p) => Math.max(p - 1, 0))}
-                className="bg-purple-600 text-white rounded-lg p-2"
-              >
-                <ChevronLeftIcon className="h-6 w-6" aria-hidden="true" />
-              </button>
-              <button
                 onClick={toggleMute}
                 className={`p-2 rounded text-white flex items-center ${
                   isMuted ? "bg-red-600" : "bg-gray-400"
@@ -189,12 +201,6 @@ export default function Book() {
               >
                 {isMuted ? <FaVolumeMute className="mr-2" /> : <FaVolumeUp className="mr-2" />}
                 {isMuted ? "Unmute" : "Mute"}
-              </button>
-              <button
-                onClick={() => setCurrentPage((p) => Math.min(p + 1, story.story_pages.length - 1))}
-                className="bg-purple-600 text-white rounded-lg p-2"
-              >
-                <ChevronRightIcon className="h-6 w-6" aria-hidden="true" />
               </button>
             </div>
           </motion.div>
@@ -211,26 +217,13 @@ export default function Book() {
             </Link>
           </p>
           <div className="mb-8 overflow-hidden flex justify-center relative">
-            <img
-              src={story.story_images[currentPage]}
-              alt={`Page ${currentPage + 1}`}
-              className="w-full h-full"
-              style={{ objectFit: "contain", maxHeight: "65vh" }}
-            />
-            <button
-              onClick={() => setCurrentPage((p) => Math.max(p - 1, 0))}
-              className="bg-purple-600 text-white rounded-lg p-4 absolute left-0 top-1/2 transform -translate-y-1/2"
-              style={{ marginLeft: "-50px" }}
-            >
-              <ChevronLeftIcon className="h-12 w-8" aria-hidden="true" />
-            </button>
-            <button
-              onClick={() => setCurrentPage((p) => Math.min(p + 1, story.story_pages.length - 1))}
-              className="bg-purple-600 text-white rounded-lg p-4 absolute right-0 top-1/2 transform -translate-y-1/2"
-              style={{ marginRight: "-50px" }}
-            >
-              <ChevronRightIcon className="h-12 w-8" aria-hidden="true" />
-            </button>
+            <div className="relative w-full h-[65vh]" onClick={handlePageClick}>
+              <img
+                src={story.story_images[currentPage]}
+                alt={`Page ${currentPage + 1}`}
+                className="w-full h-full object-contain"
+              />
+            </div>
           </div>
           <div
             className="text-container mt-3 mb-2 px-4 text-white"
