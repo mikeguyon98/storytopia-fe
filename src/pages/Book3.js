@@ -177,27 +177,25 @@ export default function Book() {
               </p>
             </div>
             <div className="flex justify-center mt-4 space-x-4">
-              <button
+              <GhostButton
                 onClick={() => setCurrentPage((p) => Math.max(p - 1, 0))}
-                className="bg-purple-600 text-white rounded-lg p-2"
               >
                 <ChevronLeftIcon className="h-6 w-6" aria-hidden="true" />
-              </button>
-              <button
+              </GhostButton>
+              <GhostButton
                 onClick={toggleMute}
                 className={`p-2 rounded text-white flex items-center ${
-                  isMuted ? "bg-red-600" : "bg-gray-400"
+                  isMuted ? "bg-red-600" : ""
                 }`}
               >
                 {isMuted ? <FaVolumeMute className="mr-2" /> : <FaVolumeUp className="mr-2" />}
                 {isMuted ? "Unmute" : "Mute"}
-              </button>
-              <button
+              </GhostButton>
+              <GhostButton
                 onClick={() => setCurrentPage((p) => Math.min(p + 1, story.story_pages.length - 1))}
-                className="bg-purple-600 text-white rounded-lg p-2"
               >
                 <ChevronRightIcon className="h-6 w-6" aria-hidden="true" />
-              </button>
+              </GhostButton>
             </div>
           </motion.div>
         )}
