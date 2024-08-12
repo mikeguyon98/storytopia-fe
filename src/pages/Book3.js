@@ -6,6 +6,8 @@ import axios from "axios";
 import { FaLock, FaLockOpen, FaPlay, FaVolumeMute, FaVolumeUp, FaTimes } from "react-icons/fa";
 import { ChevronLeftIcon, ChevronRightIcon } from "@heroicons/react/24/solid";
 import { motion, AnimatePresence } from "framer-motion";
+import { SplashButton } from "../components/buttons/SplashButton";
+import { GhostButton } from "../components/buttons/GhostButton";
 
 const BASE_URL = "http://localhost:8000";
 
@@ -220,21 +222,21 @@ export default function Book() {
               className="w-full h-full"
               style={{ objectFit: "contain", maxHeight: "65vh" }}
             />
-            <button
+          </div>
+          <SplashButton
               onClick={() => setCurrentPage((p) => Math.max(p - 1, 0))}
-              className="bg-purple-600 text-white rounded-lg p-4 absolute left-0 top-1/2 transform -translate-y-1/2"
+              className="p-4 absolute left-20 top-1/2 transform -translate-y-1/2"
               style={{ marginLeft: "-50px" }}
             >
               <ChevronLeftIcon className="h-12 w-8" aria-hidden="true" />
-            </button>
-            <button
+            </SplashButton>
+            <SplashButton
               onClick={() => setCurrentPage((p) => Math.min(p + 1, story.story_pages.length - 1))}
-              className="bg-purple-600 text-white rounded-lg p-4 absolute right-0 top-1/2 transform -translate-y-1/2"
+              className="p-4 absolute right-20 top-1/2 transform -translate-y-1/2"
               style={{ marginRight: "-50px" }}
             >
               <ChevronRightIcon className="h-12 w-8" aria-hidden="true" />
-            </button>
-          </div>
+          </SplashButton>
           <div
             className="text-container mt-3 mb-2 px-4 text-white"
             style={{
@@ -243,7 +245,6 @@ export default function Book() {
               maxHeight: "50vh",
               overflowY: "auto",
               fontSize: "1.35rem",
-              fontFamily: "Comic Sans MS, cursive, sans-serif",
             }}
           >
             <p className="text-center">
@@ -257,46 +258,43 @@ export default function Book() {
                 <button
                   key={index}
                   onClick={() => setCurrentPage(index)}
-                  className={`mx-1 p-2 rounded ${
-                    index === currentPage
-                      ? "bg-purple-600 text-white"
-                      : "bg-gray-300 text-black"
+                  className={`h-3 w-3 mx-3 rounded-full transition-colors ${
+                    index === currentPage ? "bg-neutral-50" : "bg-neutral-500"
                   }`}
                 >
-                  {index + 1}
                 </button>
               ))}
           </div>
           {isCurrentUserAuthor && (
             <div className="flex justify-center mt-4">
-              <button
+              <GhostButton
                 onClick={handleTogglePrivacy}
-                className="flex items-center bg-gray-700 hover:bg-gray-600 text-white font-bold py-2 px-4 rounded mr-4"
+                className="flex items-center"
               >
                 {story.private ? <FaLock className="mr-2" /> : <FaLockOpen className="mr-2" />}
                 {story.private ? "Private" : "Public"}
-              </button>
+              </GhostButton>
             </div>
           )}
           <div className="flex justify-center mt-4 space-x-4">
-            <button
+            <GhostButton
               onClick={toggleTheaterMode}
               className={`p-2 rounded text-white flex items-center ${
-                isTheaterMode ? "bg-purple-600" : "bg-gray-400"
+                isTheaterMode ? "bg-zinc-800 text-zinc-50" : ""
               }`}
             >
               <FaPlay className="mr-2" />
               Start Theater Mode
-            </button>
-            <button
+            </GhostButton>
+            <GhostButton
               onClick={toggleMute}
               className={`p-2 rounded text-white flex items-center ${
-                isMuted ? "bg-red-600" : "bg-gray-400"
+                isMuted ? "bg-red-600" : ""
               }`}
             >
               {isMuted ? <FaVolumeMute className="mr-2" /> : <FaVolumeUp className="mr-2" />}
               {isMuted ? "Unmute" : "Mute"}
-            </button>
+            </GhostButton>
           </div>
         </div>
       )}
