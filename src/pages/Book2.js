@@ -5,7 +5,7 @@ import axios from "axios";
 import React, { useState, useEffect } from "react";
 import HTMLFlipBook from "react-pageflip";
 
-const BASE_URL = "https://storytopia-fastapi-kgdwevjo6a-ue.a.run.app";
+const BASE_URL = "http://127.0.0.1:8000";
 export default function Book() {
   const { currentUser } = useAuth();
   const { bookID } = useParams();

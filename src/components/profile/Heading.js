@@ -8,7 +8,7 @@ import { useAuth } from "../../AuthProvider";
 import { SettingsMenu } from "./SettingsMenu";
 import { signOut } from "../../auth";
 
-const BASE_URL = "https://storytopia-fastapi-kgdwevjo6a-ue.a.run.app";
+const BASE_URL = "http://127.0.0.1:8000";
 
 export const Heading = ({ onEditProfile }) => {
   const { currentUser } = useAuth();

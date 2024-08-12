@@ -8,7 +8,7 @@ import { Tile } from "../components/Tile";
 import { useAuth } from "../AuthProvider";
 import { GhostButton } from "../components/buttons/GhostButton";
 
-const BASE_URL = "https://storytopia-fastapi-kgdwevjo6a-ue.a.run.app";
+const BASE_URL = "http://127.0.0.1:8000";
 const Profile = () => {
   const { currentUser } = useAuth();
   const [selected, setSelected] = useState(1);

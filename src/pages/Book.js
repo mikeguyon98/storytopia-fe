@@ -9,7 +9,7 @@ import { SplashButton } from "../components/buttons/SplashButton";
 import { Settings } from "../components/profile/Settings";
 import { SettingsMenu } from "../components/book/SettingsMenu";
 
-const BASE_URL = "https://storytopia-fastapi-kgdwevjo6a-ue.a.run.app";
+const BASE_URL = "http://127.0.0.1:8000";
 
 export default function Book() {
   const { currentUser } = useAuth();
@@ -18,6 +18,9 @@ export default function Book() {
   const [animationsEnabled, setAnimationsEnabled] = useState(false);
   const [menuOpen, setMenuOpen] = useState(false);
   const [textDisplay, setTextDisplay] = useState("");
+  const [audioFiles, setAudioFiles] = useState([]);
+  const [audio, setAudio] = useState(null);
+  const [isPlaying, setIsPlaying] = useState(false);
 
   const fetchStory = async () => {
     if (!currentUser) {
@@ -29,7 +32,26 @@ export default function Book() {
         Authorization: `Bearer ${token}`,
       },
     });
+    if (response.data.audio_files.length > 0) {
+      setAudioFiles(response.data.audio_files);
+    }
     return response.data;
+  };
+
+  const fetchAudio = async () => {
+    if (!currentUser) {
+      throw new Error("User not authenticated");
+    }
+    console.log("fetching audio");
+    const token = await currentUser.getIdToken();
+    const response = await axios.get(
+      `${BASE_URL}/stories/story/${bookID}/tts`,
+      {
+        headers: { Authorization: `Bearer ${token}` },
+      }
+    );
+    setAudioFiles(response.data.audio_files);
+    return response.data.audio_files;
   };
 
   const {
@@ -38,22 +60,26 @@ export default function Book() {
     error,
   } = useQuery({
     queryKey: ["stories", bookID],
-    queryFn: () => fetchStory(),
+    queryFn: fetchStory,
     enabled: !!currentUser,
   });
 
   useEffect(() => {
-    // Clear the text display initially when page or animation setting changes
-    setTextDisplay("");
-
-    if (story) {
-      // Schedule text update to trigger with or without animation based on setting
-      const timer = setTimeout(() => {
-        setTextDisplay(story.story_pages[currentPage]);
-      }, 50); // Short delay to avoid any flash before animation
-      return () => clearTimeout(timer);
+    if (audioFiles[currentPage]) {
+      const newAudio = new Audio(audioFiles[currentPage]);
+      newAudio.addEventListener("ended", handleAudioEnd);
+      setAudio(newAudio);
+      if (isPlaying) {
+        newAudio.play();
+      }
     }
-  }, [currentPage, animationsEnabled, story]);
+  }, [currentPage, audioFiles]);
+
+  useEffect(() => {
+    if (story) {
+      setTextDisplay(story.story_pages[currentPage]);
+    }
+  }, [currentPage, story]);
 
   const toggleAnimations = () => {
     setAnimationsEnabled(!animationsEnabled);
@@ -61,6 +87,34 @@ export default function Book() {
 
   const handleSettingsClick = () => {
     setMenuOpen(!menuOpen);
+  };
+
+  const playAudio = () => {
+    if (!audio) {
+      console.log("fetching audio");
+      fetchAudio();
+    }
+    if (audio) {
+      if (audio.paused) {
+        audio.play();
+        setIsPlaying(true);
+      } else {
+        audio.pause();
+        setIsPlaying(false);
+      }
+    }
+  };
+
+  const handleAudioEnd = () => {
+    const nextIndex = currentPage + 1;
+    if (nextIndex < story.story_pages.length) {
+      setCurrentPage(nextIndex);
+    } else {
+      setIsPlaying(false);
+      audio.removeEventListener("ended", handleAudioEnd);
+      audio.pause();
+      setAudio(null);
+    }
   };
 
   const renderText = (text) => {
@@ -82,49 +136,70 @@ export default function Book() {
   if (error) return <div>Error: {error.message}</div>;
 
   return (
-    <div
-      className="flex flex-col items-center justify-center mt-16 w-full h-fit"
-    >
+    <div className="flex flex-col items-center justify-center mt-16 w-full h-fit">
       <div className="flex flex-row gap-7">
-        <div
-          className="text-xl font-bold text-center my-6"
-        >
-          {story.title}
-        </div>
+        <div className="text-xl font-bold text-center my-6">{story.title}</div>
         <div className="relative mt-6">
           <Settings onClick={handleSettingsClick} />
-          {menuOpen && <SettingsMenu onClick={toggleAnimations} animationsEnabled={animationsEnabled} />}
+          {menuOpen && (
+            <SettingsMenu
+              onClick={toggleAnimations}
+              animationsEnabled={animationsEnabled}
+            />
+          )}
         </div>
-      </div> 
-        <img
-          src={story.story_images[currentPage]}
-          alt={`Page ${currentPage + 1}`}
-          className="max-w-3xl rounded-lg mx-auto"
-        />
-        <p className="text-center text-lg p-12 mx-8">
-          {textDisplay ? renderText(textDisplay) : ""}
-        </p>
-        <SplashButton
-          onClick={() => setCurrentPage((p) => Math.max(p - 1, 0))}
-          className="rounded-lg p-4 absolute left-0 top-1/2 transform -translate-y-1/2 ml-4"
-        >
-          <ChevronLeftIcon className="h-12 w-8" aria-hidden="true" />
-        </SplashButton>
-        <SplashButton
-          onClick={() =>
-            setCurrentPage((p) => Math.min(p + 1, story.story_pages.length - 1))
+      </div>
+      <img
+        src={story.story_images[currentPage]}
+        alt={`Page ${currentPage + 1}`}
+        className="max-w-3xl rounded-lg mx-auto"
+      />
+      <p className="text-center text-lg p-12 mx-8">
+        {textDisplay ? renderText(textDisplay) : ""}
+      </p>
+      <SplashButton
+        onClick={() => {
+          if (audio) {
+            audio.pause(); // Pause current audio
+            setIsPlaying(false);
           }
-          className="rounded-lg p-4 absolute right-0 top-1/2 transform -translate-y-1/2 mr-4"
-        >
-          <ChevronRightIcon className="h-12 w-8" aria-hidden="true" />
-        </SplashButton>
+          setCurrentPage((p) => Math.max(p - 1, 0));
+        }}
+        className="rounded-lg p-4 absolute left-0 top-1/2 transform -translate-y-1/2 ml-4"
+      >
+        <ChevronLeftIcon className="h-12 w-8" aria-hidden="true" />
+      </SplashButton>
+      <SplashButton
+        onClick={() => {
+          if (audio) {
+            audio.pause(); // Pause current audio
+            setIsPlaying(false);
+          }
+          setCurrentPage((p) => Math.min(p + 1, story.story_pages.length - 1));
+        }}
+        className="rounded-lg p-4 absolute right-0 top-1/2 transform -translate-y-1/2 mr-4"
+      >
+        <ChevronRightIcon className="h-12 w-8" aria-hidden="true" />
+      </SplashButton>
+      <SplashButton
+        onClick={playAudio}
+        className="rounded-lg p-4 mt-4 bg-blue-500 text-white"
+      >
+        {isPlaying ? "Pause" : "Play"}
+      </SplashButton>
       <div className="flex justify-center items-center w-full py-1">
         {Array(story.story_pages.length)
           .fill(null)
           .map((_, index) => (
             <SplashButton
               key={index}
-              onClick={() => setCurrentPage(index)}
+              onClick={() => {
+                if (audio) {
+                  audio.pause(); // Pause current audio
+                  setIsPlaying(false);
+                }
+                setCurrentPage(index);
+              }}
               className={`mx-3 p-2 rounded-xl ${
                 index === currentPage
                   ? "bg-grey-500 scale-[0.98] ring-indigo-500/70 hover:bg-grey-500 hover:ring-indigo-500/70"
