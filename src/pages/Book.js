@@ -1,12 +1,12 @@
 import { useAuth } from "../AuthProvider";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { useParams } from "react-router-dom";
+import { useParams, Link } from "react-router-dom";
 import axios from "axios";
 import React from "react";
 import HTMLFlipBook from "react-pageflip";
 import { FaLock, FaLockOpen } from "react-icons/fa";
 
-const BASE_URL = "https://storytopia-fastapi-kgdwevjo6a-ue.a.run.app";
+const BASE_URL = "http://localhost:8000";
 
 export default function Book() {
   const { currentUser } = useAuth();
@@ -67,7 +67,13 @@ export default function Book() {
   return (
     <div className="flex flex-col items-center min-h-screen bg-black pt-20 pb-10 px-4">
       <div className="max-w-4xl w-full">
-        <h1 className="text-3xl font-bold text-center mb-8">{story.title}</h1>
+        <h1 className="text-3xl font-bold text-center mb-2 text-white">{story.title}</h1>
+        <p className="text-center mb-8 text-gray-300">
+          By{" "}
+          <Link to={`/profile/${story.author}`} className="text-blue-400 hover:text-blue-300">
+            {story.author || "Unknown Author"}
+          </Link>
+        </p>
         <div className="mb-8 overflow-hidden flex justify-center">
           <HTMLFlipBook
             width={800}

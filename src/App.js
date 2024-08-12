@@ -11,6 +11,7 @@ import SignIn from "./pages/SignIn";
 import Home from "./pages/Home";
 import Main from "./pages/Main";
 import Profile from "./pages/Profile";
+import UserProfile from "./pages/UserProfile";
 import ForgetPassword from "./pages/ForgetPassword";
 import { AuthProvider, useAuth } from "./AuthProvider";
 import PrivateRoute from "./PrivateRoute";
@@ -61,6 +62,14 @@ const AppRoutes = () => {
           element={
             <PrivateRoute>
               <Profile />
+            </PrivateRoute>
+          }
+        />
+        <Route
+          path="/profile/:username"
+          element={
+            <PrivateRoute>
+              <UserProfile />
             </PrivateRoute>
           }
         />

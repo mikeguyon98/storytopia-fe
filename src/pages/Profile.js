@@ -1,17 +1,19 @@
 import React, { useState } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import axios from "axios";
+import { useParams, Navigate } from "react-router-dom";
 import Page from "../components/utils/Page";
 import { Heading } from "../components/profile/Heading";
 import { Tabs } from "../components/profile/Tabs";
 import { Tile } from "../components/Tile";
 import { useAuth } from "../AuthProvider";
 import { GhostButton } from "../components/buttons/GhostButton";
+import UserProfile from "./UserProfile";
 
-// const BASE_URL = "https://storytopia-fastapi-kgdwevjo6a-ue.a.run.app";
 const BASE_URL = "http://localhost:8000";
 
 const Profile = () => {
+  const { userId } = useParams();
   const { currentUser } = useAuth();
   const [selected, setSelected] = useState(1);
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
@@ -34,11 +36,17 @@ const Profile = () => {
     }
   };
 
+  const fetchUserDetails = async () => {
+    if (!currentUser) throw new Error("User not authenticated");
+    const token = await currentUser.getIdToken();
+    const response = await axios.get(`${BASE_URL}/users/me`, {
+      headers: { Authorization: `Bearer ${token}` },
+    });
+    return response.data;
+  };
+
   const fetchStories = async () => {
-    console.log(currentUser.reloadUserInfo.localId);
-    if (!currentUser) {
-      throw new Error("User not authenticated");
-    }
+    if (!currentUser) throw new Error("User not authenticated");
     const token = await currentUser.getIdToken();
     const endpoint = getEndpoint(selected);
     const response = await axios.get(`${BASE_URL}${endpoint}`, {
@@ -49,9 +57,15 @@ const Profile = () => {
     return response.data;
   };
 
+  const { data: userDetails, isLoading: isLoadingUserDetails } = useQuery({
+    queryKey: ["userDetails"],
+    queryFn: fetchUserDetails,
+    enabled: !!currentUser,
+  });
+
   const {
     data: stories,
-    isLoading,
+    isLoading: isLoadingStories,
     error,
   } = useQuery({
     queryKey: ["stories", selected],
@@ -64,26 +78,11 @@ const Profile = () => {
       if (!currentUser) throw new Error("User not authenticated");
       const token = await currentUser.getIdToken();
 
-      // Fetch current user details
-      const currentUserResponse = await axios.get(`${BASE_URL}/users/me`, {
-        headers: { Authorization: `Bearer ${token}` },
-      });
-      const currentUserData = currentUserResponse.data;
-
-      // Prepare updated user data
       const updatedUserData = {
+        ...userDetails,
         username: newUsername,
-        profile_picture: currentUserData.profile_picture || "",
-        bio: currentUserData.bio || "",
-        followers: currentUserData.followers || [],
-        following: currentUserData.following || [],
-        liked_books: currentUserData.liked_books || [],
-        saved_books: currentUserData.saved_books || [],
-        public_books: currentUserData.public_books || [],
-        private_books: currentUserData.private_books || [],
       };
 
-      // Send PUT request to update user details
       const response = await axios.put(
         `${BASE_URL}/users/me`,
         updatedUserData,
@@ -132,35 +131,45 @@ const Profile = () => {
   };
 
   if (!currentUser) {
+    return <Navigate to="/signin" />;
+  }
+
+  if (userId && userId !== currentUser?.uid) {
+    return <UserProfile userId={userId} />;
+  }
+
+  if (isLoadingUserDetails || isLoadingStories) {
     return (
       <Page>
-        <p>Please log in to view your profile.</p>
+        <p>Loading...</p>
+      </Page>
+    );
+  }
+
+  if (error) {
+    return (
+      <Page>
+        <p>Error: {error.message}</p>
       </Page>
     );
   }
 
   return (
     <Page>
-      <Heading onEditProfile={handleEditProfile} />
+      <Heading onEditProfile={handleEditProfile} username={userDetails?.username} />
       <Tabs tabData={TAB_DATA} selected={selected} setSelected={setSelected} />
       <div className="w-full border border-b-1"></div>
       <div className="grid grid-cols-3 gap-1 my-2">
-        {isLoading ? (
-          <p>Loading...</p>
-        ) : error ? (
-          <p>Error: {error.message}</p>
-        ) : (
-          stories &&
+        {stories &&
           stories.map((story) => (
             <Tile
               key={story.id}
               image={story.story_images[0]}
               likes={story.likes}
               saves={story.saves}
-              storyId={story.id}  // Add this line to pass the story ID
+              storyId={story.id}
             />
-          ))
-        )}
+          ))}
       </div>
 
       {isEditModalOpen && (
