@@ -5,6 +5,9 @@ import { useParams } from "react-router-dom";
 import axios from "axios";
 import { ChevronLeftIcon, ChevronRightIcon } from "@heroicons/react/24/solid";
 import { motion } from "framer-motion";
+import { SplashButton } from "../components/buttons/SplashButton";
+import { Settings } from "../components/profile/Settings";
+import { SettingsMenu } from "../components/book/SettingsMenu";
 
 const BASE_URL = "https://storytopia-fastapi-kgdwevjo6a-ue.a.run.app";
 
@@ -13,6 +16,7 @@ export default function Book() {
   const { bookID } = useParams();
   const [currentPage, setCurrentPage] = useState(0);
   const [animationsEnabled, setAnimationsEnabled] = useState(false);
+  const [menuOpen, setMenuOpen] = useState(false);
   const [textDisplay, setTextDisplay] = useState("");
 
   const fetchStory = async () => {
@@ -55,6 +59,10 @@ export default function Book() {
     setAnimationsEnabled(!animationsEnabled);
   };
 
+  const handleSettingsClick = () => {
+    setMenuOpen(!menuOpen);
+  };
+
   const renderText = (text) => {
     if (!animationsEnabled || !text) return text;
 
@@ -75,82 +83,56 @@ export default function Book() {
 
   return (
     <div
-      className="flex flex-col items-center justify-center mt-16"
-      style={{ width: "100%", height: "100vh" }}
+      className="flex flex-col items-center justify-center mt-16 w-full h-fit"
     >
-      <button
-        onClick={toggleAnimations}
-        className={`absolute bottom-16 left-4 mt-4 ml-4 p-2 rounded text-white ${
-          animationsEnabled ? "bg-purple-600" : "bg-gray-400"
-        }`}
-      >
-        {animationsEnabled
-          ? "Disable Text Animations"
-          : "Enable Text Animations"}
-      </button>
-      <div
-        className="text-4xl font-bold text-center mb-1"
-        style={{
-          fontFamily: "Comic Sans MS, cursive, sans-serif",
-          maxWidth: "70%",
-        }}
-      >
-        {story.title}
-      </div>
-      <div className="relative mt-8 mb-6 mx-auto" style={{ height: "65vh" }}>
+      <div className="flex flex-row gap-7">
+        <div
+          className="text-xl font-bold text-center my-6"
+        >
+          {story.title}
+        </div>
+        <div className="relative mt-6">
+          <Settings onClick={handleSettingsClick} />
+          {menuOpen && <SettingsMenu onClick={toggleAnimations} animationsEnabled={animationsEnabled} />}
+        </div>
+      </div> 
         <img
           src={story.story_images[currentPage]}
           alt={`Page ${currentPage + 1}`}
-          className="w-full h-full"
-          style={{ objectFit: "contain" }}
+          className="max-w-3xl rounded-lg mx-auto"
         />
-        <button
+        <p className="text-center text-lg p-12 mx-8">
+          {textDisplay ? renderText(textDisplay) : ""}
+        </p>
+        <SplashButton
           onClick={() => setCurrentPage((p) => Math.max(p - 1, 0))}
-          className="bg-purple-600 text-white rounded-lg p-4 absolute left-0 top-1/2 transform -translate-y-1/2"
-          style={{ marginLeft: "-100px" }}
+          className="rounded-lg p-4 absolute left-0 top-1/2 transform -translate-y-1/2 ml-4"
         >
           <ChevronLeftIcon className="h-12 w-8" aria-hidden="true" />
-        </button>
-        <button
+        </SplashButton>
+        <SplashButton
           onClick={() =>
             setCurrentPage((p) => Math.min(p + 1, story.story_pages.length - 1))
           }
-          className="bg-purple-600 text-white rounded-lg p-4 absolute right-0 top-1/2 transform -translate-y-1/2"
-          style={{ marginRight: "-100px" }}
+          className="rounded-lg p-4 absolute right-0 top-1/2 transform -translate-y-1/2 mr-4"
         >
           <ChevronRightIcon className="h-12 w-8" aria-hidden="true" />
-        </button>
-      </div>
-      <div
-        className="text-container mt-3 mb-2 px-4"
-        style={{
-          width: "50%",
-          minHeight: "15vh",
-          maxHeight: "50vh",
-          overflowY: "auto",
-          fontSize: "1.35rem",
-          fontFamily: "Comic Sans MS, cursive, sans-serif",
-        }}
-      >
-        <p className="text-center">
-          {textDisplay ? renderText(textDisplay) : ""}
-        </p>
-      </div>
+        </SplashButton>
       <div className="flex justify-center items-center w-full py-1">
         {Array(story.story_pages.length)
           .fill(null)
           .map((_, index) => (
-            <button
+            <SplashButton
               key={index}
               onClick={() => setCurrentPage(index)}
-              className={`mx-1 p-2 rounded ${
+              className={`mx-3 p-2 rounded-xl ${
                 index === currentPage
-                  ? "bg-purple-600 text-white"
-                  : "bg-gray-300"
+                  ? "bg-grey-500 scale-[0.98] ring-indigo-500/70 hover:bg-grey-500 hover:ring-indigo-500/70"
+                  : ""
               }`}
             >
               {index + 1}
-            </button>
+            </SplashButton>
           ))}
       </div>
     </div>
