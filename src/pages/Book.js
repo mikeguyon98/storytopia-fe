@@ -118,21 +118,18 @@ export default function Book() {
         >
           <ChevronRightIcon className="h-12 w-8" aria-hidden="true" />
         </SplashButton>
-      <div className="flex justify-center items-center w-full py-1">
+      <div className="mt-4 flex w-full justify-center gap-2">
         {Array(story.story_pages.length)
           .fill(null)
           .map((_, index) => (
-            <SplashButton
+            <button
               key={index}
               onClick={() => setCurrentPage(index)}
-              className={`mx-3 p-2 rounded-xl ${
-                index === currentPage
-                  ? "bg-grey-500 scale-[0.98] ring-indigo-500/70 hover:bg-grey-500 hover:ring-indigo-500/70"
-                  : ""
+              className={`h-3 w-3 rounded-full transition-colors text-sm ${
+                index === currentPage ? "bg-neutral-50" : "bg-neutral-500"
               }`}
             >
-              {index + 1}
-            </SplashButton>
+            </button>
           ))}
       </div>
     </div>
