@@ -9,7 +9,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import { SplashButton } from "../components/buttons/SplashButton";
 import { GhostButton } from "../components/buttons/GhostButton";
 
-const BASE_URL = "http://localhost:8000";
+const BASE_URL = "https://storytopia-fastapi-kgdwevjo6a-ue.a.run.app";
 
 export default function Book() {
   const { currentUser } = useAuth();
