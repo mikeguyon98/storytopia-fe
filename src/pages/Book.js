@@ -17,8 +17,9 @@ export default function Book() {
   const [animationsEnabled, setAnimationsEnabled] = useState(false);
   const [isTheaterMode, setIsTheaterMode] = useState(false);
   const [isMuted, setIsMuted] = useState(false);
-  const synth = window.speechSynthesis;
-  const utteranceRef = useRef(null);
+  const [audioFiles, setAudioFiles] = useState([]);
+  const [isPlaying, setIsPlaying] = useState(false);
+  const audioRef = useRef(new Audio());
 
   const fetchStory = async () => {
     if (!currentUser) {
@@ -33,6 +34,20 @@ export default function Book() {
     return response.data;
   };
 
+  const fetchAudio = async () => {
+    if (!currentUser) {
+      throw new Error("User not authenticated");
+    }
+    const token = await currentUser.getIdToken();
+    const response = await axios.get(`${BASE_URL}/stories/story/${bookID}/tts`, {
+      headers: {
+        Authorization: `Bearer ${token}`,
+      },
+    });
+    setAudioFiles(response.data.audio_files);
+    return response.data.audio_files;
+  };
+
   const {
     data: story,
     isLoading: storyLoading,
@@ -42,6 +57,20 @@ export default function Book() {
     queryFn: fetchStory,
     enabled: !!currentUser,
   });
+
+  useEffect(() => {
+    fetchAudio();
+  }, [currentUser, bookID]);
+
+  useEffect(() => {
+    if (audioFiles[currentPage]) {
+      audioRef.current.src = audioFiles[currentPage];
+      if (isTheaterMode && !isMuted) {
+        audioRef.current.play();
+        setIsPlaying(true);
+      }
+    }
+  }, [currentPage, audioFiles, isTheaterMode, isMuted]);
 
   const { mutate: togglePrivacy } = useMutation({
     mutationFn: async () => {
@@ -61,41 +90,6 @@ export default function Book() {
     },
   });
 
-  const speakText = useCallback((text) => {
-    if (synth.speaking) {
-      synth.cancel();
-    }
-    if (!isMuted) {
-      utteranceRef.current = new SpeechSynthesisUtterance(text);
-      utteranceRef.current.onend = () => {
-        if (isTheaterMode && story && currentPage < story.story_pages.length - 1) {
-          setTimeout(() => {
-            setCurrentPage(prevPage => prevPage + 1);
-          }, 2000); // 2-second pause between pages
-        } else if (story && currentPage === story.story_pages.length - 1) {
-          setIsTheaterMode(false);
-        }
-      };
-      synth.speak(utteranceRef.current);
-    }
-  }, [isTheaterMode, story, currentPage, isMuted, synth]);
-
-  const stopSpeaking = useCallback(() => {
-    if (synth.speaking) {
-      synth.cancel();
-    }
-  }, [synth]);
-
-  useEffect(() => {
-    if (story) {
-      if (isTheaterMode) {
-        speakText(story.story_pages[currentPage]);
-      } else {
-        stopSpeaking();
-      }
-    }
-  }, [isTheaterMode, currentPage, story, speakText, stopSpeaking]);
-
   const handleTogglePrivacy = () => {
     togglePrivacy();
   };
@@ -108,17 +102,46 @@ export default function Book() {
     setIsTheaterMode(!isTheaterMode);
     if (!isTheaterMode) {
       setCurrentPage(0);
+      if (!isMuted) {
+        audioRef.current.play();
+        setIsPlaying(true);
+      }
+    } else {
+      audioRef.current.pause();
+      setIsPlaying(false);
     }
   };
 
   const toggleMute = () => {
     setIsMuted(!isMuted);
-    if (!isMuted) {
-      stopSpeaking();
-    } else if (isTheaterMode && story) {
-      speakText(story.story_pages[currentPage]);
+    if (isMuted) {
+      if (isTheaterMode) {
+        audioRef.current.play();
+        setIsPlaying(true);
+      }
+    } else {
+      audioRef.current.pause();
+      setIsPlaying(false);
     }
   };
+
+  const handleAudioEnd = useCallback(() => {
+    if (isTheaterMode && story && currentPage < story.story_pages.length - 1) {
+      setTimeout(() => {
+        setCurrentPage(prevPage => prevPage + 1);
+      }, 2000); // 2-second pause between pages
+    } else if (story && currentPage === story.story_pages.length - 1) {
+      setIsTheaterMode(false);
+      setIsPlaying(false);
+    }
+  }, [isTheaterMode, story, currentPage]);
+
+  useEffect(() => {
+    audioRef.current.addEventListener('ended', handleAudioEnd);
+    return () => {
+      audioRef.current.removeEventListener('ended', handleAudioEnd);
+    };
+  }, [handleAudioEnd]);
 
   const renderText = (text) => {
     if (!animationsEnabled || !text) return text;
