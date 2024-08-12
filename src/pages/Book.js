@@ -71,31 +71,35 @@ export default function Book() {
   }
 
   return (
-    <div className="flex flex-col items-center justify-center min-h-screen bg-black book-container pt-20">
-      <div className="text-3xl font-bold text-center mb-8">{story.title}</div>
-      <HTMLFlipBook
-        width={800}
-        height={600}
-        className="flipbook mb-8"
-        onFlip={handleFlipStart}
-        onAnimationEnd={handleFlipEnd}
-      >
-        {story.story_images.map((image, index) => (
-          <div className="page" key={index}>
-            <img src={image} alt={`Page ${index + 1}`} />
-            <p>{story.story_pages[index]}</p>
-          </div>
-        ))}
-      </HTMLFlipBook>
-      <div className="mt-4">
-        <button
-          onClick={handleTogglePrivacy}
-          className="flex items-center bg-gray-700 hover:bg-gray-600 text-white font-bold py-2 px-4 rounded"
-          disabled={togglePrivacy.isLoading}
-        >
-          {story.private ? <FaLock className="mr-2" /> : <FaLockOpen className="mr-2" />}
-          {story.private ? "Private" : "Public"}
-        </button>
+    <div className="flex flex-col items-center min-h-screen bg-black pt-20 pb-10 px-4">
+      <div className="max-w-4xl w-full">
+        <h1 className="text-3xl font-bold text-center mb-8">{story.title}</h1>
+        <div className="mb-8 overflow-hidden flex justify-center">
+          <HTMLFlipBook
+            width={800}
+            height={600}
+            className="flipbook"
+            onFlip={handleFlipStart}
+            onAnimationEnd={handleFlipEnd}
+          >
+            {story.story_images.map((image, index) => (
+              <div className="page" key={index}>
+                <img src={image} alt={`Page ${index + 1}`} />
+                <p>{story.story_pages[index]}</p>
+              </div>
+            ))}
+          </HTMLFlipBook>
+        </div>
+        <div className="flex justify-center mt-4">
+          <button
+            onClick={handleTogglePrivacy}
+            className="flex items-center bg-gray-700 hover:bg-gray-600 text-white font-bold py-2 px-4 rounded"
+            disabled={togglePrivacy.isLoading}
+          >
+            {story.private ? <FaLock className="mr-2" /> : <FaLockOpen className="mr-2" />}
+            {story.private ? "Private" : "Public"}
+          </button>
+        </div>
       </div>
     </div>
   );
