@@ -50,14 +50,6 @@ export default function Book() {
     },
   });
 
-  const handleFlipStart = () => {
-    document.body.style.overflow = "hidden";
-  };
-
-  const handleFlipEnd = () => {
-    document.body.style.overflow = "auto";
-  };
-
   const handleTogglePrivacy = () => {
     togglePrivacy.mutate();
   };
@@ -70,6 +62,8 @@ export default function Book() {
     return <div className="flex justify-center items-center h-screen">Error: {error.message}</div>;
   }
 
+  const isCurrentUserAuthor = currentUser && story.author_id === currentUser.uid;
+
   return (
     <div className="flex flex-col items-center min-h-screen bg-black pt-20 pb-10 px-4">
       <div className="max-w-4xl w-full">
@@ -78,9 +72,10 @@ export default function Book() {
           <HTMLFlipBook
             width={800}
             height={600}
+            showCover={false}
+            maxShadowOpacity={0.5}
+            mobileScrollSupport={true}
             className="flipbook"
-            onFlip={handleFlipStart}
-            onAnimationEnd={handleFlipEnd}
           >
             {story.story_images.map((image, index) => (
               <div className="page" key={index}>
@@ -90,16 +85,18 @@ export default function Book() {
             ))}
           </HTMLFlipBook>
         </div>
-        <div className="flex justify-center mt-4">
-          <button
-            onClick={handleTogglePrivacy}
-            className="flex items-center bg-gray-700 hover:bg-gray-600 text-white font-bold py-2 px-4 rounded"
-            disabled={togglePrivacy.isLoading}
-          >
-            {story.private ? <FaLock className="mr-2" /> : <FaLockOpen className="mr-2" />}
-            {story.private ? "Private" : "Public"}
-          </button>
-        </div>
+        {isCurrentUserAuthor && (
+          <div className="flex justify-center mt-4">
+            <button
+              onClick={handleTogglePrivacy}
+              className="flex items-center bg-gray-700 hover:bg-gray-600 text-white font-bold py-2 px-4 rounded"
+              disabled={togglePrivacy.isLoading}
+            >
+              {story.private ? <FaLock className="mr-2" /> : <FaLockOpen className="mr-2" />}
+              {story.private ? "Private" : "Public"}
+            </button>
+          </div>
+        )}
       </div>
     </div>
   );
