@@ -1,9 +1,9 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef, useCallback } from "react";
 import { useAuth } from "../AuthProvider";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { useParams, Link } from "react-router-dom";
 import axios from "axios";
-import { FaLock, FaLockOpen } from "react-icons/fa";
+import { FaLock, FaLockOpen, FaPlay, FaPause, FaVolumeMute, FaVolumeUp } from "react-icons/fa";
 import { ChevronLeftIcon, ChevronRightIcon } from "@heroicons/react/24/solid";
 import { motion } from "framer-motion";
 
@@ -15,7 +15,10 @@ export default function Book() {
   const queryClient = useQueryClient();
   const [currentPage, setCurrentPage] = useState(0);
   const [animationsEnabled, setAnimationsEnabled] = useState(false);
-  const [textDisplay, setTextDisplay] = useState("");
+  const [isTheaterMode, setIsTheaterMode] = useState(false);
+  const [isMuted, setIsMuted] = useState(false);
+  const synth = window.speechSynthesis;
+  const utteranceRef = useRef(null);
 
   const fetchStory = async () => {
     if (!currentUser) {
@@ -32,7 +35,7 @@ export default function Book() {
 
   const {
     data: story,
-    isLoading,
+    isLoading: storyLoading,
     error,
   } = useQuery({
     queryKey: ["stories", bookID],
@@ -40,7 +43,7 @@ export default function Book() {
     enabled: !!currentUser,
   });
 
-  const togglePrivacy = useMutation({
+  const { mutate: togglePrivacy } = useMutation({
     mutationFn: async () => {
       if (!currentUser) throw new Error("User not authenticated");
       const token = await currentUser.getIdToken();
@@ -58,22 +61,63 @@ export default function Book() {
     },
   });
 
-  useEffect(() => {
-    setTextDisplay("");
-    if (story) {
-      const timer = setTimeout(() => {
-        setTextDisplay(story.story_pages[currentPage]);
-      }, 50);
-      return () => clearTimeout(timer);
+  const speakText = useCallback((text) => {
+    if (synth.speaking) {
+      synth.cancel();
     }
-  }, [currentPage, animationsEnabled, story]);
+    if (!isMuted) {
+      utteranceRef.current = new SpeechSynthesisUtterance(text);
+      utteranceRef.current.onend = () => {
+        if (isTheaterMode && story && currentPage < story.story_pages.length - 1) {
+          setTimeout(() => {
+            setCurrentPage(prevPage => prevPage + 1);
+          }, 2000); // 2-second pause between pages
+        } else if (story && currentPage === story.story_pages.length - 1) {
+          setIsTheaterMode(false);
+        }
+      };
+      synth.speak(utteranceRef.current);
+    }
+  }, [isTheaterMode, story, currentPage, isMuted, synth]);
+
+  const stopSpeaking = useCallback(() => {
+    if (synth.speaking) {
+      synth.cancel();
+    }
+  }, [synth]);
+
+  useEffect(() => {
+    if (story) {
+      if (isTheaterMode) {
+        speakText(story.story_pages[currentPage]);
+      } else {
+        stopSpeaking();
+      }
+    }
+  }, [isTheaterMode, currentPage, story, speakText, stopSpeaking]);
 
   const handleTogglePrivacy = () => {
-    togglePrivacy.mutate();
+    togglePrivacy();
   };
 
   const toggleAnimations = () => {
     setAnimationsEnabled(!animationsEnabled);
+  };
+
+  const toggleTheaterMode = () => {
+    setIsTheaterMode(!isTheaterMode);
+    if (!isTheaterMode) {
+      setCurrentPage(0);
+    }
+  };
+
+  const toggleMute = () => {
+    setIsMuted(!isMuted);
+    if (!isMuted) {
+      stopSpeaking();
+    } else if (isTheaterMode && story) {
+      speakText(story.story_pages[currentPage]);
+    }
   };
 
   const renderText = (text) => {
@@ -91,7 +135,7 @@ export default function Book() {
     ));
   };
 
-  if (isLoading) {
+  if (storyLoading) {
     return <div className="flex justify-center items-center h-screen">Loading...</div>;
   }
 
@@ -118,20 +162,24 @@ export default function Book() {
             className="w-full h-full"
             style={{ objectFit: "contain", maxHeight: "65vh" }}
           />
-          <button
-            onClick={() => setCurrentPage((p) => Math.max(p - 1, 0))}
-            className="bg-purple-600 text-white rounded-lg p-4 absolute left-0 top-1/2 transform -translate-y-1/2"
-            style={{ marginLeft: "-50px" }}
-          >
-            <ChevronLeftIcon className="h-12 w-8" aria-hidden="true" />
-          </button>
-          <button
-            onClick={() => setCurrentPage((p) => Math.min(p + 1, story.story_pages.length - 1))}
-            className="bg-purple-600 text-white rounded-lg p-4 absolute right-0 top-1/2 transform -translate-y-1/2"
-            style={{ marginRight: "-50px" }}
-          >
-            <ChevronRightIcon className="h-12 w-8" aria-hidden="true" />
-          </button>
+          {!isTheaterMode && (
+            <>
+              <button
+                onClick={() => setCurrentPage((p) => Math.max(p - 1, 0))}
+                className="bg-purple-600 text-white rounded-lg p-4 absolute left-0 top-1/2 transform -translate-y-1/2"
+                style={{ marginLeft: "-50px" }}
+              >
+                <ChevronLeftIcon className="h-12 w-8" aria-hidden="true" />
+              </button>
+              <button
+                onClick={() => setCurrentPage((p) => Math.min(p + 1, story.story_pages.length - 1))}
+                className="bg-purple-600 text-white rounded-lg p-4 absolute right-0 top-1/2 transform -translate-y-1/2"
+                style={{ marginRight: "-50px" }}
+              >
+                <ChevronRightIcon className="h-12 w-8" aria-hidden="true" />
+              </button>
+            </>
+          )}
         </div>
         <div
           className="text-container mt-3 mb-2 px-4 text-white"
@@ -145,7 +193,7 @@ export default function Book() {
           }}
         >
           <p className="text-center">
-            {textDisplay ? renderText(textDisplay) : ""}
+            {story.story_pages[currentPage] ? renderText(story.story_pages[currentPage]) : ""}
           </p>
         </div>
         <div className="flex justify-center items-center w-full py-1">
@@ -170,21 +218,49 @@ export default function Book() {
             <button
               onClick={handleTogglePrivacy}
               className="flex items-center bg-gray-700 hover:bg-gray-600 text-white font-bold py-2 px-4 rounded mr-4"
-              disabled={togglePrivacy.isLoading}
             >
               {story.private ? <FaLock className="mr-2" /> : <FaLockOpen className="mr-2" />}
               {story.private ? "Private" : "Public"}
             </button>
           </div>
         )}
-        <button
-          onClick={toggleAnimations}
-          className={`mt-4 p-2 rounded text-white ${
-            animationsEnabled ? "bg-purple-600" : "bg-gray-400"
-          }`}
-        >
-          {animationsEnabled ? "Disable Text Animations" : "Enable Text Animations"}
-        </button>
+        <div className="flex justify-center mt-4 space-x-4">
+          <button
+            onClick={toggleAnimations}
+            className={`p-2 rounded text-white ${
+              animationsEnabled ? "bg-purple-600" : "bg-gray-400"
+            }`}
+          >
+            {animationsEnabled ? "Disable Text Animations" : "Enable Text Animations"}
+          </button>
+          <button
+            onClick={toggleTheaterMode}
+            className={`p-2 rounded text-white flex items-center ${
+              isTheaterMode ? "bg-purple-600" : "bg-gray-400"
+            }`}
+          >
+            {isTheaterMode ? (
+              <>
+                <FaPause className="mr-2" />
+                Stop Theater Mode
+              </>
+            ) : (
+              <>
+                <FaPlay className="mr-2" />
+                Start Theater Mode
+              </>
+            )}
+          </button>
+          <button
+            onClick={toggleMute}
+            className={`p-2 rounded text-white flex items-center ${
+              isMuted ? "bg-red-600" : "bg-gray-400"
+            }`}
+          >
+            {isMuted ? <FaVolumeMute className="mr-2" /> : <FaVolumeUp className="mr-2" />}
+            {isMuted ? "Unmute" : "Mute"}
+          </button>
+        </div>
       </div>
     </div>
   );
