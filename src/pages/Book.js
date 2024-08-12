@@ -3,7 +3,7 @@ import { useAuth } from "../AuthProvider";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { useParams, Link } from "react-router-dom";
 import axios from "axios";
-import { FaLock, FaLockOpen, FaPlay, FaPause, FaVolumeMute, FaVolumeUp, FaTimes } from "react-icons/fa";
+import { FaLock, FaLockOpen, FaPlay, FaVolumeMute, FaVolumeUp, FaTimes } from "react-icons/fa";
 import { ChevronLeftIcon, ChevronRightIcon } from "@heroicons/react/24/solid";
 import { motion, AnimatePresence } from "framer-motion";
 
@@ -14,11 +14,9 @@ export default function Book() {
   const { bookID } = useParams();
   const queryClient = useQueryClient();
   const [currentPage, setCurrentPage] = useState(0);
-  const [animationsEnabled, setAnimationsEnabled] = useState(false);
   const [isTheaterMode, setIsTheaterMode] = useState(false);
   const [isMuted, setIsMuted] = useState(false);
   const [audioFiles, setAudioFiles] = useState([]);
-  const [isPlaying, setIsPlaying] = useState(false);
   const audioRef = useRef(new Audio());
 
   const fetchStory = async () => {
@@ -34,7 +32,7 @@ export default function Book() {
     return response.data;
   };
 
-  const fetchAudio = async () => {
+  const fetchAudio = useCallback(async () => {
     if (!currentUser) {
       throw new Error("User not authenticated");
     }
@@ -46,7 +44,7 @@ export default function Book() {
     });
     setAudioFiles(response.data.audio_files);
     return response.data.audio_files;
-  };
+  }, [currentUser, bookID]);
 
   const {
     data: story,
@@ -60,14 +58,13 @@ export default function Book() {
 
   useEffect(() => {
     fetchAudio();
-  }, [currentUser, bookID]);
+  }, [fetchAudio]);
 
   useEffect(() => {
     if (audioFiles[currentPage]) {
       audioRef.current.src = audioFiles[currentPage];
       if (isTheaterMode && !isMuted) {
         audioRef.current.play();
-        setIsPlaying(true);
       }
     }
   }, [currentPage, audioFiles, isTheaterMode, isMuted]);
@@ -94,25 +91,18 @@ export default function Book() {
     togglePrivacy();
   };
 
-  const toggleAnimations = () => {
-    setAnimationsEnabled(!animationsEnabled);
-  };
-
   const toggleTheaterMode = () => {
     setIsTheaterMode(!isTheaterMode);
     if (!isTheaterMode) {
       document.body.style.overflow = 'hidden';
       document.body.classList.add('theater-mode');
-      setCurrentPage(0);
       if (!isMuted) {
         audioRef.current.play();
-        setIsPlaying(true);
       }
     } else {
       document.body.style.overflow = 'auto';
       document.body.classList.remove('theater-mode');
       audioRef.current.pause();
-      setIsPlaying(false);
     }
   };
 
@@ -121,11 +111,9 @@ export default function Book() {
     if (isMuted) {
       if (isTheaterMode) {
         audioRef.current.play();
-        setIsPlaying(true);
       }
     } else {
       audioRef.current.pause();
-      setIsPlaying(false);
     }
   };
 
@@ -136,31 +124,16 @@ export default function Book() {
       }, 2000); // 2-second pause between pages
     } else if (story && currentPage === story.story_pages.length - 1) {
       setIsTheaterMode(false);
-      setIsPlaying(false);
     }
   }, [isTheaterMode, story, currentPage]);
 
   useEffect(() => {
-    audioRef.current.addEventListener('ended', handleAudioEnd);
+    const currentAudio = audioRef.current;
+    currentAudio.addEventListener('ended', handleAudioEnd);
     return () => {
-      audioRef.current.removeEventListener('ended', handleAudioEnd);
+      currentAudio.removeEventListener('ended', handleAudioEnd);
     };
   }, [handleAudioEnd]);
-
-  const renderText = (text) => {
-    if (!animationsEnabled || !text) return text;
-
-    return text.split("").map((char, index) => (
-      <motion.span
-        key={index}
-        initial={{ opacity: 0 }}
-        animate={{ opacity: 1 }}
-        transition={{ delay: index * 0.02, duration: 0.1 }}
-      >
-        {char}
-      </motion.span>
-    ));
-  };
 
   if (storyLoading) {
     return <div className="flex justify-center items-center h-screen">Loading...</div>;
@@ -194,11 +167,20 @@ export default function Book() {
               className="max-w-full max-h-[70vh] object-contain mb-8"
             />
             <div className="text-container mt-3 mb-2 px-4 text-white w-full max-w-4xl">
-              <p className="text-center text-2xl">
-                {story.story_pages[currentPage] ? renderText(story.story_pages[currentPage]) : ""}
+              <p className="text-center" style={{
+                fontSize: "1.35rem",
+                fontFamily: "Comic Sans MS, cursive, sans-serif",
+              }}>
+                {story.story_pages[currentPage]}
               </p>
             </div>
             <div className="flex justify-center mt-4 space-x-4">
+              <button
+                onClick={() => setCurrentPage((p) => Math.max(p - 1, 0))}
+                className="bg-purple-600 text-white rounded-lg p-2"
+              >
+                <ChevronLeftIcon className="h-6 w-6" aria-hidden="true" />
+              </button>
               <button
                 onClick={toggleMute}
                 className={`p-2 rounded text-white flex items-center ${
@@ -207,6 +189,12 @@ export default function Book() {
               >
                 {isMuted ? <FaVolumeMute className="mr-2" /> : <FaVolumeUp className="mr-2" />}
                 {isMuted ? "Unmute" : "Mute"}
+              </button>
+              <button
+                onClick={() => setCurrentPage((p) => Math.min(p + 1, story.story_pages.length - 1))}
+                className="bg-purple-600 text-white rounded-lg p-2"
+              >
+                <ChevronRightIcon className="h-6 w-6" aria-hidden="true" />
               </button>
             </div>
           </motion.div>
@@ -256,7 +244,7 @@ export default function Book() {
             }}
           >
             <p className="text-center">
-              {story.story_pages[currentPage] ? renderText(story.story_pages[currentPage]) : ""}
+              {story.story_pages[currentPage]}
             </p>
           </div>
           <div className="flex justify-center items-center w-full py-1">
@@ -288,14 +276,6 @@ export default function Book() {
             </div>
           )}
           <div className="flex justify-center mt-4 space-x-4">
-            <button
-              onClick={toggleAnimations}
-              className={`p-2 rounded text-white ${
-                animationsEnabled ? "bg-purple-600" : "bg-gray-400"
-              }`}
-            >
-              {animationsEnabled ? "Disable Text Animations" : "Enable Text Animations"}
-            </button>
             <button
               onClick={toggleTheaterMode}
               className={`p-2 rounded text-white flex items-center ${
