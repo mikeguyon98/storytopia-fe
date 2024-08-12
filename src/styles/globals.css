@@ -19,6 +19,7 @@
   height: 600px;
   overflow: hidden; /* Hide overflow during flip transitions */
   margin: auto; /* Center the flipbook on the page */
+  margin-top: 40px;
   position: relative;
 }
 
