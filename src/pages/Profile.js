@@ -1,7 +1,7 @@
 import React, { useState } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import axios from "axios";
-import { useParams, Navigate } from "react-router-dom";
+import { useParams, Navigate, Link } from "react-router-dom";
 import Page from "../components/utils/Page";
 import { Heading } from "../components/profile/Heading";
 import { Tabs } from "../components/profile/Tabs";
@@ -9,6 +9,7 @@ import { Tile } from "../components/Tile";
 import { useAuth } from "../AuthProvider";
 import { GhostButton } from "../components/buttons/GhostButton";
 import UserProfile from "./UserProfile";
+import { X } from "lucide-react"; // Import the X icon from lucide-react
 
 const BASE_URL = "http://localhost:8000";
 
@@ -17,6 +18,8 @@ const Profile = () => {
   const { currentUser } = useAuth();
   const [selected, setSelected] = useState(1);
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
+  const [isFollowersModalOpen, setIsFollowersModalOpen] = useState(false);
+  const [isFollowingModalOpen, setIsFollowingModalOpen] = useState(false);
   const [newUsername, setNewUsername] = useState("");
   const [errorMessage, setErrorMessage] = useState("");
   const queryClient = useQueryClient();
@@ -57,6 +60,24 @@ const Profile = () => {
     return response.data;
   };
 
+  const fetchFollowers = async () => {
+    if (!currentUser) throw new Error("User not authenticated");
+    const token = await currentUser.getIdToken();
+    const response = await axios.get(`${BASE_URL}/users/followers`, {
+      headers: { Authorization: `Bearer ${token}` },
+    });
+    return response.data;
+  };
+
+  const fetchFollowing = async () => {
+    if (!currentUser) throw new Error("User not authenticated");
+    const token = await currentUser.getIdToken();
+    const response = await axios.get(`${BASE_URL}/users/following`, {
+      headers: { Authorization: `Bearer ${token}` },
+    });
+    return response.data;
+  };
+
   const { data: userDetails, isLoading: isLoadingUserDetails } = useQuery({
     queryKey: ["userDetails"],
     queryFn: fetchUserDetails,
@@ -70,6 +91,18 @@ const Profile = () => {
   } = useQuery({
     queryKey: ["stories", selected],
     queryFn: fetchStories,
+    enabled: !!currentUser,
+  });
+
+  const { data: followers, isLoading: isLoadingFollowers } = useQuery({
+    queryKey: ["followers"],
+    queryFn: fetchFollowers,
+    enabled: !!currentUser,
+  });
+
+  const { data: following, isLoading: isLoadingFollowing } = useQuery({
+    queryKey: ["following"],
+    queryFn: fetchFollowing,
     enabled: !!currentUser,
   });
 
@@ -156,7 +189,11 @@ const Profile = () => {
 
   return (
     <Page>
-      <Heading onEditProfile={handleEditProfile} username={userDetails?.username} />
+      <Heading 
+        onEditProfile={handleEditProfile}
+        onFollowersClick={() => setIsFollowersModalOpen(true)}
+        onFollowingClick={() => setIsFollowingModalOpen(true)}
+      />
       <Tabs tabData={TAB_DATA} selected={selected} setSelected={setSelected} />
       <div className="w-full border border-b-1"></div>
       <div className="grid grid-cols-3 gap-1 my-2">
@@ -173,45 +210,106 @@ const Profile = () => {
       </div>
 
       {isEditModalOpen && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex justify-center items-center">
-          <div className="bg-neutral-800 text-white p-6 rounded-lg shadow-lg max-w-md w-full">
-            <h2 className="text-xl font-bold mb-4">Edit Profile</h2>
-            {errorMessage && (
-              <div className="bg-red-500 text-white p-2 rounded mb-4">
-                {errorMessage}
-              </div>
-            )}
-            <input
-              type="text"
-              value={newUsername}
-              onChange={(e) => setNewUsername(e.target.value)}
-              placeholder="New username"
-              className="w-full px-3 py-2 bg-neutral-700 border border-neutral-600 rounded-md focus:outline-none focus:ring-2 focus:ring-indigo-600 mb-4 text-white"
-            />
-            <div className="flex justify-end space-x-2">
-              <GhostButton
-                onClick={() => {
-                  setIsEditModalOpen(false);
-                  setErrorMessage("");
-                }}
-                className="text-zinc-400 hover:text-white"
-              >
-                Cancel
-              </GhostButton>
-              <GhostButton
-                onClick={handleSaveUsername}
-                disabled={updateUsername.isLoading}
-                className="bg-indigo-600 hover:bg-indigo-700 text-white px-4 py-2 rounded-md"
-              >
-                {updateUsername.isLoading ? "Saving..." : "Save"}
-              </GhostButton>
-            </div>
-          </div>
-        </div>
+        <EditUsernameModal
+          newUsername={newUsername}
+          setNewUsername={setNewUsername}
+          errorMessage={errorMessage}
+          onCancel={() => {
+            setIsEditModalOpen(false);
+            setErrorMessage("");
+          }}
+          onSave={handleSaveUsername}
+          isLoading={updateUsername.isLoading}
+        />
+      )}
+
+      {isFollowersModalOpen && (
+        <FollowModal
+          title="Followers"
+          users={followers}
+          isLoading={isLoadingFollowers}
+          onClose={() => setIsFollowersModalOpen(false)}
+        />
+      )}
+
+      {isFollowingModalOpen && (
+        <FollowModal
+          title="Following"
+          users={following}
+          isLoading={isLoadingFollowing}
+          onClose={() => setIsFollowingModalOpen(false)}
+        />
       )}
     </Page>
   );
 };
+
+const EditUsernameModal = ({ newUsername, setNewUsername, errorMessage, onCancel, onSave, isLoading }) => (
+  <div className="fixed inset-0 bg-black bg-opacity-50 flex justify-center items-center">
+    <div className="bg-neutral-800 text-white p-6 rounded-lg shadow-lg max-w-md w-full">
+      <h2 className="text-xl font-bold mb-4">Edit Profile</h2>
+      {errorMessage && (
+        <div className="bg-red-500 text-white p-2 rounded mb-4">
+          {errorMessage}
+        </div>
+      )}
+      <input
+        type="text"
+        value={newUsername}
+        onChange={(e) => setNewUsername(e.target.value)}
+        placeholder="New username"
+        className="w-full px-3 py-2 bg-neutral-700 border border-neutral-600 rounded-md focus:outline-none focus:ring-2 focus:ring-indigo-600 mb-4 text-white"
+      />
+      <div className="flex justify-end space-x-2">
+        <GhostButton
+          onClick={onCancel}
+          className="text-zinc-400 hover:text-white"
+        >
+          Cancel
+        </GhostButton>
+        <GhostButton
+          onClick={onSave}
+          disabled={isLoading}
+          className="bg-indigo-600 hover:bg-indigo-700 text-white px-4 py-2 rounded-md"
+        >
+          {isLoading ? "Saving..." : "Save"}
+        </GhostButton>
+      </div>
+    </div>
+  </div>
+);
+
+const FollowModal = ({ title, users, isLoading, onClose }) => (
+  <div className="fixed inset-0 bg-black bg-opacity-50 flex justify-center items-center">
+    <div className="bg-neutral-800 text-white p-6 rounded-lg shadow-lg max-w-md w-full relative">
+      <h2 className="text-xl font-bold mb-4">{title}</h2>
+      <button
+        onClick={onClose}
+        className="absolute top-2 right-2 text-gray-400 hover:text-white"
+        aria-label="Close"
+      >
+        <X size={24} />
+      </button>
+      {isLoading ? (
+        <p>Loading...</p>
+      ) : (
+        <ul className="max-h-60 overflow-y-auto">
+          {users.map((user) => (
+            <li key={user.id} className="mb-2">
+              <Link
+                to={`/profile/${user.username}`}
+                className="text-blue-400 hover:text-blue-300"
+                onClick={onClose}
+              >
+                {user.username}
+              </Link>
+            </li>
+          ))}
+        </ul>
+      )}
+    </div>
+  </div>
+);
 
 const TAB_DATA = [
   { id: 1, title: "Posts" },
