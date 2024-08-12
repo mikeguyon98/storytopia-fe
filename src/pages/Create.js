@@ -13,7 +13,7 @@ const Create = () => {
     const [storyDescription, setStoryDescription] = useState("");
 
     const createStory = async ({ prompt, style, isPrivate }) => {
-        const response = await axios.post('http://localhost:8000/generate-story-with-images', {
+        const response = await axios.post('http://localhost:8000/stories/generate-story-with-images', {
             prompt,
             style,
             private: isPrivate,
