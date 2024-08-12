@@ -155,6 +155,7 @@ const Profile = () => {
               image={story.story_images[0]}
               likes={story.likes}
               saves={story.saves}
+              storyId={story.id}  // Add this line to pass the story ID
             />
           ))
         )}

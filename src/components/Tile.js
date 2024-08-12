@@ -1,16 +1,15 @@
 import React, { useState } from "react";
-import { ArrowRight } from "./icons/ArrowRight";
 import { AnimatePresence, motion } from "framer-motion";
 import { Link } from "react-router-dom";
 import { SolidHeart } from "./icons/SolidHeart";
 import { SolidBookmark } from "./icons/SolidBookmark";
 
-export const Tile = ({ image, likes, saves }) => {
+export const Tile = ({ image, likes, saves, storyId }) => {
   const [showOverlay, setShowOverlay] = useState(false);
   const [onClick, setOnClick] = useState(false);
 
   return (
-    <Link to={`/`}>
+    <Link to={`/${storyId}`}>
       <motion.div
         className="relative overflow-hidden bg-slate-400 rounded-xl flex justify-center items-center"
         onHoverStart={() => setShowOverlay(true)}
