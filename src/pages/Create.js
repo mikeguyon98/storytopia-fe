@@ -1,57 +1,73 @@
 import React, { useState } from "react";
-import { useMutation } from '@tanstack/react-query';
-import axios from 'axios';
+import { useMutation } from "@tanstack/react-query";
 import Page from "../components/utils/Page";
 import { SplashButton } from "../components/buttons/SplashButton";
 import SelectComponent from "../components/select/SelectComponent";
-import { useAuth } from '../AuthProvider';  // Import the useAuth hook
+import axios from "axios";
+import { useAuth } from "../AuthProvider";
+
+const BASE_URL = "http://localhost:8000";
 
 const Create = () => {
-    const { currentUser } = useAuth();  // Get the current user
-    const [error, setError] = useState(null);
     const [selectedStyle, setSelectedStyle] = useState("");
-    const [storyDescription, setStoryDescription] = useState("");
+    const [storyPrompt, setStoryPrompt] = useState("");
+    const [isPrivate, setIsPrivate] = useState(false);
+    const [formError, setFormError] = useState("");
+    const [submissionStatus, setSubmissionStatus] = useState("");
+    const { currentUser } = useAuth();
 
-    const createStory = async ({ prompt, style, isPrivate }) => {
-        const response = await axios.post('http://localhost:8000/generate-story-with-images', {
-            prompt,
-            style,
-            private: isPrivate,
-        }, {
-            headers: {
-                Authorization: `Bearer ${currentUser.accessToken}`  // Add the Authorization header
-            }
-        });
-        return response.data;
-    };
-
-    const mutation = useMutation({
-        mutationFn: createStory,
-        onSuccess: (data) => {
-            // Handle successful story creation, e.g., navigate to the story view page
-            console.log('Story created successfully:', data);
+    const createStoryMutation = useMutation({
+        mutationFn: async (storyData) => {
+            const token = await currentUser.getIdToken();
+            return axios.post(
+                `${BASE_URL}/stories/generate-story-with-images`,
+                storyData,
+                {
+                    headers: {
+                        Authorization: `Bearer ${token}`
+                    }
+                }
+            );
         },
-        onError: (error) => {
-            setError('Failed to create story. Please try again.');
-            console.error('Error creating story:', error);
+        onSuccess: () => {
+            // Reset form fields on success
+            setStoryPrompt("");
+            setSelectedStyle("");
+            setIsPrivate(false);
+            setFormError("");
+        },
+        onError: () => {
+            setSubmissionStatus("An error occurred while processing your request. However, if the submission was received, you will still be notified via email once your story is ready.");
         }
     });
 
     const handleStyleChange = (style) => {
         setSelectedStyle(style);
+        if (formError) setFormError("");  // Clear error when style is selected
     };
 
     const handleSubmit = (e) => {
         e.preventDefault();
-        if (!storyDescription || !selectedStyle) {
-            setError('Please provide a story description and choose a style.');
+        setFormError("");  // Clear any existing form errors
+        setSubmissionStatus("");  // Clear any existing submission status
+
+        if (!storyPrompt.trim()) {
+            setFormError("Please enter a story description.");
             return;
         }
 
-        mutation.mutate({
-            prompt: storyDescription,
+        if (!selectedStyle) {
+            setFormError("Please select a style for your story.");
+            return;
+        }
+
+        // Set submission status immediately
+        setSubmissionStatus("Your story generation request has been submitted. You will be notified via email once your story is ready.");
+
+        createStoryMutation.mutate({
+            prompt: storyPrompt,
             style: selectedStyle,
-            isPrivate: false,  // Adjust based on your form if you allow setting privacy
+            private: isPrivate
         });
     };
 
@@ -65,9 +81,14 @@ const Create = () => {
                 </div>
 
                 <div className="mt-10 sm:mx-auto sm:w-full sm:max-w-sm">
-                    {error && (
+                    {formError && (
                         <div className="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded relative mb-4" role="alert">
-                            <span className="block sm:inline">{error}</span>
+                            <span className="block sm:inline">{formError}</span>
+                        </div>
+                    )}
+                    {submissionStatus && (
+                        <div className="bg-green-100 border border-green-400 text-green-700 px-4 py-3 rounded relative mb-4" role="alert">
+                            <span className="block sm:inline">{submissionStatus}</span>
                         </div>
                     )}
                     <form className="space-y-6" onSubmit={handleSubmit}>
@@ -81,10 +102,13 @@ const Create = () => {
                                     name="story"
                                     autoComplete="story"
                                     required
-                                    value={storyDescription}
-                                    onChange={(e) => setStoryDescription(e.target.value)}
                                     className="block w-full rounded-md border-0 bg-white/5 py-1.5 text-white shadow-sm ring-1 ring-inset ring-white/10 focus:ring-2 focus:ring-inset focus:ring-indigo-600 sm:text-sm sm:leading-6 px-3 resize-y overflow-y-auto h-32"
                                     placeholder="Enter your story description"
+                                    value={storyPrompt}
+                                    onChange={(e) => {
+                                        setStoryPrompt(e.target.value);
+                                        if (formError) setFormError("");  // Clear error when user types
+                                    }}
                                 />
                             </div>
                         </div>
@@ -102,13 +126,28 @@ const Create = () => {
                                 />
                             </div>
                         </div>
+
+                        <div className="flex items-center">
+                            <input
+                                id="private"
+                                name="private"
+                                type="checkbox"
+                                className="h-4 w-4 rounded border-gray-300 text-indigo-600 focus:ring-indigo-600"
+                                checked={isPrivate}
+                                onChange={(e) => setIsPrivate(e.target.checked)}
+                            />
+                            <label htmlFor="private" className="ml-2 block text-sm text-white">
+                                Private
+                            </label>
+                        </div>
+
                         <div>
                             <SplashButton 
                                 type="submit" 
                                 className="w-full"
-                                disabled={mutation.isLoading} // Optional: Show loading state
+                                disabled={createStoryMutation.isLoading}
                             >
-                                {mutation.isLoading ? 'Creating...' : 'Create Story'}
+                                {createStoryMutation.isLoading ? "Submitting..." : "Submit"}
                             </SplashButton>
                         </div>
                     </form>

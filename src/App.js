@@ -43,7 +43,7 @@ const AppRoutes = () => {
       <Routes>
         <Route
           path="/"
-          element={!currentUser ? <Main /> : <Navigate to="/home" />}
+          element={!currentUser ? <SignIn /> : <Navigate to="/home" />}
         />
         <Route path="/signup" element={<SignUp />} />
         <Route path="/signin" element={<SignIn />} />
@@ -52,7 +52,7 @@ const AppRoutes = () => {
           path="/home"
           element={
             <PrivateRoute>
-              <Home />
+              <Explore />
             </PrivateRoute>
           }
         />
