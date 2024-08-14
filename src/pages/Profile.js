@@ -1,18 +1,25 @@
 import React, { useState } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import axios from "axios";
+import { useParams, Navigate, Link } from "react-router-dom";
 import Page from "../components/utils/Page";
 import { Heading } from "../components/profile/Heading";
 import { Tabs } from "../components/profile/Tabs";
 import { Tile } from "../components/Tile";
 import { useAuth } from "../AuthProvider";
 import { GhostButton } from "../components/buttons/GhostButton";
+import UserProfile from "./UserProfile";
+import { X } from "lucide-react"; // Import the X icon from lucide-react
 
-const BASE_URL = "http://127.0.0.1:8000";
+const BASE_URL = "http://localhost:8000";
+
 const Profile = () => {
+  const { userId } = useParams();
   const { currentUser } = useAuth();
   const [selected, setSelected] = useState(1);
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
+  const [isFollowersModalOpen, setIsFollowersModalOpen] = useState(false);
+  const [isFollowingModalOpen, setIsFollowingModalOpen] = useState(false);
   const [newUsername, setNewUsername] = useState("");
   const [errorMessage, setErrorMessage] = useState("");
   const queryClient = useQueryClient();
@@ -32,11 +39,17 @@ const Profile = () => {
     }
   };
 
+  const fetchUserDetails = async () => {
+    if (!currentUser) throw new Error("User not authenticated");
+    const token = await currentUser.getIdToken();
+    const response = await axios.get(`${BASE_URL}/users/me`, {
+      headers: { Authorization: `Bearer ${token}` },
+    });
+    return response.data;
+  };
+
   const fetchStories = async () => {
-    console.log(currentUser.reloadUserInfo.localId);
-    if (!currentUser) {
-      throw new Error("User not authenticated");
-    }
+    if (!currentUser) throw new Error("User not authenticated");
     const token = await currentUser.getIdToken();
     const endpoint = getEndpoint(selected);
     const response = await axios.get(`${BASE_URL}${endpoint}`, {
@@ -47,13 +60,49 @@ const Profile = () => {
     return response.data;
   };
 
+  const fetchFollowers = async () => {
+    if (!currentUser) throw new Error("User not authenticated");
+    const token = await currentUser.getIdToken();
+    const response = await axios.get(`${BASE_URL}/users/followers`, {
+      headers: { Authorization: `Bearer ${token}` },
+    });
+    return response.data;
+  };
+
+  const fetchFollowing = async () => {
+    if (!currentUser) throw new Error("User not authenticated");
+    const token = await currentUser.getIdToken();
+    const response = await axios.get(`${BASE_URL}/users/following`, {
+      headers: { Authorization: `Bearer ${token}` },
+    });
+    return response.data;
+  };
+
+  const { data: userDetails, isLoading: isLoadingUserDetails } = useQuery({
+    queryKey: ["userDetails"],
+    queryFn: fetchUserDetails,
+    enabled: !!currentUser,
+  });
+
   const {
     data: stories,
-    isLoading,
+    isLoading: isLoadingStories,
     error,
   } = useQuery({
     queryKey: ["stories", selected],
     queryFn: fetchStories,
+    enabled: !!currentUser,
+  });
+
+  const { data: followers, isLoading: isLoadingFollowers } = useQuery({
+    queryKey: ["followers"],
+    queryFn: fetchFollowers,
+    enabled: !!currentUser,
+  });
+
+  const { data: following, isLoading: isLoadingFollowing } = useQuery({
+    queryKey: ["following"],
+    queryFn: fetchFollowing,
     enabled: !!currentUser,
   });
 
@@ -62,26 +111,11 @@ const Profile = () => {
       if (!currentUser) throw new Error("User not authenticated");
       const token = await currentUser.getIdToken();
 
-      // Fetch current user details
-      const currentUserResponse = await axios.get(`${BASE_URL}/users/me`, {
-        headers: { Authorization: `Bearer ${token}` },
-      });
-      const currentUserData = currentUserResponse.data;
-
-      // Prepare updated user data
       const updatedUserData = {
+        ...userDetails,
         username: newUsername,
-        profile_picture: currentUserData.profile_picture || "",
-        bio: currentUserData.bio || "",
-        followers: currentUserData.followers || [],
-        following: currentUserData.following || [],
-        liked_books: currentUserData.liked_books || [],
-        saved_books: currentUserData.saved_books || [],
-        public_books: currentUserData.public_books || [],
-        private_books: currentUserData.private_books || [],
       };
 
-      // Send PUT request to update user details
       const response = await axios.put(
         `${BASE_URL}/users/me`,
         updatedUserData,
@@ -130,77 +164,152 @@ const Profile = () => {
   };
 
   if (!currentUser) {
+    return <Navigate to="/signin" />;
+  }
+
+  if (userId && userId !== currentUser?.uid) {
+    return <UserProfile userId={userId} />;
+  }
+
+  if (isLoadingUserDetails || isLoadingStories) {
     return (
       <Page>
-        <p>Please log in to view your profile.</p>
+        <p>Loading...</p>
+      </Page>
+    );
+  }
+
+  if (error) {
+    return (
+      <Page>
+        <p>Error: {error.message}</p>
       </Page>
     );
   }
 
   return (
     <Page>
-      <Heading onEditProfile={handleEditProfile} />
+      <Heading 
+        onEditProfile={handleEditProfile}
+        onFollowersClick={() => setIsFollowersModalOpen(true)}
+        onFollowingClick={() => setIsFollowingModalOpen(true)}
+      />
       <Tabs tabData={TAB_DATA} selected={selected} setSelected={setSelected} />
       <div className="w-full border border-b-1"></div>
       <div className="grid grid-cols-3 gap-1 my-2">
-        {isLoading ? (
-          <p>Loading...</p>
-        ) : error ? (
-          <p>Error: {error.message}</p>
-        ) : (
-          stories &&
+        {stories &&
           stories.map((story) => (
             <Tile
               key={story.id}
-              storyId={story.id}
               image={story.story_images[0]}
               likes={story.likes}
               saves={story.saves}
+              storyId={story.id}
             />
-          ))
-        )}
+          ))}
       </div>
 
       {isEditModalOpen && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex justify-center items-center">
-          <div className="bg-neutral-800 text-white p-6 rounded-lg shadow-lg max-w-md w-full">
-            <h2 className="text-xl font-bold mb-4">Edit Profile</h2>
-            {errorMessage && (
-              <div className="bg-red-500 text-white p-2 rounded mb-4">
-                {errorMessage}
-              </div>
-            )}
-            <input
-              type="text"
-              value={newUsername}
-              onChange={(e) => setNewUsername(e.target.value)}
-              placeholder="New username"
-              className="w-full px-3 py-2 bg-neutral-700 border border-neutral-600 rounded-md focus:outline-none focus:ring-2 focus:ring-indigo-600 mb-4 text-white"
-            />
-            <div className="flex justify-end space-x-2">
-              <GhostButton
-                onClick={() => {
-                  setIsEditModalOpen(false);
-                  setErrorMessage("");
-                }}
-                className="text-zinc-400 hover:text-white"
-              >
-                Cancel
-              </GhostButton>
-              <GhostButton
-                onClick={handleSaveUsername}
-                disabled={updateUsername.isLoading}
-                className="bg-indigo-600 hover:bg-indigo-700 text-white px-4 py-2 rounded-md"
-              >
-                {updateUsername.isLoading ? "Saving..." : "Save"}
-              </GhostButton>
-            </div>
-          </div>
-        </div>
+        <EditUsernameModal
+          newUsername={newUsername}
+          setNewUsername={setNewUsername}
+          errorMessage={errorMessage}
+          onCancel={() => {
+            setIsEditModalOpen(false);
+            setErrorMessage("");
+          }}
+          onSave={handleSaveUsername}
+          isLoading={updateUsername.isLoading}
+        />
+      )}
+
+      {isFollowersModalOpen && (
+        <FollowModal
+          title="Followers"
+          users={followers}
+          isLoading={isLoadingFollowers}
+          onClose={() => setIsFollowersModalOpen(false)}
+        />
+      )}
+
+      {isFollowingModalOpen && (
+        <FollowModal
+          title="Following"
+          users={following}
+          isLoading={isLoadingFollowing}
+          onClose={() => setIsFollowingModalOpen(false)}
+        />
       )}
     </Page>
   );
 };
+
+const EditUsernameModal = ({ newUsername, setNewUsername, errorMessage, onCancel, onSave, isLoading }) => (
+  <div className="fixed inset-0 bg-black bg-opacity-50 flex justify-center items-center">
+    <div className="bg-neutral-800 text-white p-6 rounded-lg shadow-lg max-w-md w-full">
+      <h2 className="text-xl font-bold mb-4">Edit Profile</h2>
+      {errorMessage && (
+        <div className="bg-red-500 text-white p-2 rounded mb-4">
+          {errorMessage}
+        </div>
+      )}
+      <input
+        type="text"
+        value={newUsername}
+        onChange={(e) => setNewUsername(e.target.value)}
+        placeholder="New username"
+        className="w-full px-3 py-2 bg-neutral-700 border border-neutral-600 rounded-md focus:outline-none focus:ring-2 focus:ring-indigo-600 mb-4 text-white"
+      />
+      <div className="flex justify-end space-x-2">
+        <GhostButton
+          onClick={onCancel}
+          className="text-zinc-400 hover:text-white"
+        >
+          Cancel
+        </GhostButton>
+        <GhostButton
+          onClick={onSave}
+          disabled={isLoading}
+          className="bg-indigo-600 hover:bg-indigo-700 text-white px-4 py-2 rounded-md"
+        >
+          {isLoading ? "Saving..." : "Save"}
+        </GhostButton>
+      </div>
+    </div>
+  </div>
+);
+
+const FollowModal = ({ title, users, isLoading, onClose }) => (
+  <div className="fixed inset-0 bg-black bg-opacity-50 flex justify-center items-center">
+    <div className="bg-neutral-800 text-white p-6 rounded-lg shadow-lg max-w-md w-full relative">
+      <h2 className="text-xl font-bold mb-4">{title}</h2>
+      <button
+        onClick={onClose}
+        className="absolute top-2 right-2 text-gray-400 hover:text-white"
+        aria-label="Close"
+      >
+        <X size={24} />
+      </button>
+      {isLoading ? (
+        <p>Loading...</p>
+      ) : (
+        <ul className="max-h-60 overflow-y-auto">
+          {users.map((user) => (
+            <li key={user.id} className="mb-2">
+              <Link
+                to={`/profile/${user.username}`}
+                className="text-blue-400 hover:text-blue-300"
+                onClick={onClose}
+              >
+                {user.username}
+              </Link>
+            </li>
+          ))}
+        </ul>
+      )}
+    </div>
+  </div>
+);
 
 const TAB_DATA = [
   { id: 1, title: "Posts" },
