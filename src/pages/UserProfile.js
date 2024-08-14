@@ -6,7 +6,8 @@ import Page from "../components/utils/Page";
 import { Tile } from "../components/Tile";
 import { useAuth } from "../AuthProvider";
 
-const BASE_URL = "https://storytopia-fastapi-kgdwevjo6a-ue.a.run.app";
+// const BASE_URL = "https://storytopia-fastapi-kgdwevjo6a-ue.a.run.app";
+BASE_URL = "http://127.0.0.1:8000"
 
 const UserProfile = () => {
   const { username } = useParams();

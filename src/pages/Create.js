@@ -6,7 +6,8 @@ import SelectComponent from "../components/select/SelectComponent";
 import axios from "axios";
 import { useAuth } from "../AuthProvider";
 
-const BASE_URL = "https://storytopia-fastapi-kgdwevjo6a-ue.a.run.app";
+// const BASE_URL = "https://storytopia-fastapi-kgdwevjo6a-ue.a.run.app";
+BASE_URL ="http://127.0.0.1:8000"
 
 const Create = () => {
   const [selectedStyle, setSelectedStyle] = useState("");
