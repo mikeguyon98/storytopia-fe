@@ -6,7 +6,7 @@ import axios from "axios";
 import { SplashButton } from "../components/buttons/SplashButton";
 import { useAuth } from "../AuthProvider";
 
-BASE_URL = "http://127.0.0.1:8000"
+const BASE_URL = "http://127.0.0.1:8000"
 
 const fetchExploreData = async ({ pageParam = 1, pageSize = 9 }) => {
   const response = await axios.get(
