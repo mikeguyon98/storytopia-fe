@@ -6,7 +6,8 @@ import axios from "axios";
 import { SplashButton } from "../components/buttons/SplashButton";
 import { useAuth } from "../AuthProvider";
 
-const BASE_URL = "http://127.0.0.1:8000"
+// const BASE_URL = "http://127.0.0.1:8000"
+const BASE_URL = "https://storytopia-fastapi-kgdwevjo6a-ue.a.run.app"
 
 const fetchExploreData = async ({ pageParam = 1, pageSize = 9 }) => {
   const response = await axios.get(

@@ -11,7 +11,8 @@ import { GhostButton } from "../components/buttons/GhostButton";
 import UserProfile from "./UserProfile";
 import { X } from "lucide-react"; // Import the X icon from lucide-react
 
-const BASE_URL = "http://localhost:8000";
+// const BASE_URL = "http://localhost:8000";
+const BASE_URL = "https://storytopia-fastapi-kgdwevjo6a-ue.a.run.app"
 
 const Profile = () => {
   const { userId } = useParams();

@@ -7,7 +7,8 @@ import { useAuth } from "../../AuthProvider";
 import axios from "axios";
 import { useState } from "react";
 
-const BASE_URL = "http://127.0.0.1:8000"
+// const BASE_URL = "http://127.0.0.1:8000"
+const BASE_URL = "https://storytopia-fastapi-kgdwevjo6a-ue.a.run.app"
 
 export const ExploreTileFooter = ({ userId, likes, saves, postId }) => {
   const { currentUser } = useAuth();
