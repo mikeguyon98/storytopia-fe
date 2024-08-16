@@ -8,9 +8,10 @@ import { useAuth } from "../../AuthProvider";
 import { SettingsMenu } from "./SettingsMenu";
 import { signOut } from "../../auth";
 
-const BASE_URL = "http://127.0.0.1:8000";
+// const BASE_URL = "http://localhost:8000";
+const BASE_URL = "https://storytopia-fastapi-kgdwevjo6a-ue.a.run.app"
 
-export const Heading = ({ onEditProfile }) => {
+export const Heading = ({ onEditProfile, onFollowersClick, onFollowingClick }) => {
   const { currentUser } = useAuth();
   const [menuOpen, setMenuOpen] = useState(false);
 
@@ -65,12 +66,18 @@ export const Heading = ({ onEditProfile }) => {
             userDetails?.private_books.length || 0}{" "}
           Stories
         </div>
-        <div className="text-zinc-400">
+        <button 
+          className="text-zinc-400 hover:text-blue-400"
+          onClick={onFollowersClick}
+        >
           {userDetails?.followers.length || 0} Followers
-        </div>
-        <div className="text-zinc-400">
+        </button>
+        <button 
+          className="text-zinc-400 hover:text-blue-400"
+          onClick={onFollowingClick}
+        >
           {userDetails?.following.length || 0} Following
-        </div>
+        </button>
       </div>
     </div>
   );

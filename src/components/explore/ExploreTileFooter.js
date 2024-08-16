@@ -7,6 +7,9 @@ import { useAuth } from "../../AuthProvider";
 import axios from "axios";
 import { useState } from "react";
 
+// const BASE_URL = "http://127.0.0.1:8000"
+const BASE_URL = "https://storytopia-fastapi-kgdwevjo6a-ue.a.run.app"
+
 export const ExploreTileFooter = ({ userId, likes, saves, postId }) => {
   const { currentUser } = useAuth();
   const queryClient = useQueryClient();
@@ -16,7 +19,7 @@ export const ExploreTileFooter = ({ userId, likes, saves, postId }) => {
 
   const likePost = async () => {
     const response = await axios.post(
-      "https://storytopia-fastapi-kgdwevjo6a-ue.a.run.app/stories/like",
+      `${BASE_URL}/stories/like`,
       null,
       {
         headers: {
@@ -32,7 +35,7 @@ export const ExploreTileFooter = ({ userId, likes, saves, postId }) => {
 
   const unlikePost = async () => {
     const response = await axios.post(
-      "https://storytopia-fastapi-kgdwevjo6a-ue.a.run.app/stories/unlike",
+      `${BASE_URL}/stories/unlike`,
       null,
       {
         headers: {
@@ -82,7 +85,7 @@ export const ExploreTileFooter = ({ userId, likes, saves, postId }) => {
 
   const savePost = async () => {
     const response = await axios.post(
-      "https://storytopia-fastapi-kgdwevjo6a-ue.a.run.app/stories/save",
+      `${BASE_URL}/stories/save`,
       null,
       {
         headers: {
@@ -98,7 +101,7 @@ export const ExploreTileFooter = ({ userId, likes, saves, postId }) => {
 
   const unsavePost = async () => {
     const response = await axios.post(
-      "https://storytopia-fastapi-kgdwevjo6a-ue.a.run.app/stories/unsave",
+      `${BASE_URL}/stories/unsave`,
       null,
       {
         headers: {

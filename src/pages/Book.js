@@ -9,7 +9,8 @@ import { SplashButton } from "../components/buttons/SplashButton";
 import { Settings } from "../components/profile/Settings";
 import { SettingsMenu } from "../components/book/SettingsMenu";
 
-const BASE_URL = "http://127.0.0.1:8000";
+// const BASE_URL = "http://127.0.0.1:8000";
+const BASE_URL = "https://storytopia-fastapi-kgdwevjo6a-ue.a.run.app"
 
 export default function Book() {
   const { currentUser } = useAuth();
