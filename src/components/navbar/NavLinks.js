@@ -11,9 +11,6 @@ export const NavLinks = () => {
       <li>
         <NavLink to="create">Create</NavLink>
       </li>
-      <li>
-        <NavLink>About</NavLink>
-      </li>
     </ul>
   );
 };
