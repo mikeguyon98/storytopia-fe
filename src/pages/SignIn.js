@@ -14,7 +14,7 @@ const SignIn = () => {
   const signInMutation = useMutation({
     mutationFn: ({ email, password }) => signIn(email, password),
     onSuccess: () => {
-      navigate('/home');
+      navigate('/explore');
     },
     onError: (error) => {
       setError(getErrorMessage(error.code));
