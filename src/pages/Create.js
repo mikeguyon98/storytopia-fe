@@ -16,6 +16,7 @@ const Create = () => {
   const [formError, setFormError] = useState("");
   const [submissionStatus, setSubmissionStatus] = useState("");
   const [showRecommendations, setShowRecommendations] = useState(false);
+  const [showDisabilityInput, setShowDisabilityInput] = useState(false);
   const { currentUser } = useAuth();
 
   const createStoryMutation = useMutation({
@@ -105,7 +106,6 @@ const Create = () => {
 
   const handleSelectRecommendation = (recommendation) => {
     setStoryPrompt(recommendation);
-    // Removed: setShowRecommendations(false);
   };
 
   return (
@@ -171,30 +171,6 @@ const Create = () => {
 
             <div>
               <label
-                htmlFor="disability"
-                className="block text-sm font-medium leading-6 text-white"
-              >
-                Specify Any Disabilities to Enhance Your Story Experience (e.g.,
-                color blindness, dyslexia, etc.)
-              </label>
-              <div className="mt-2">
-                <textarea
-                  id="disability"
-                  name="disability"
-                  autoComplete="disability"
-                  className="block w-full rounded-md border-0 bg-white/5 py-1.5 text-white shadow-sm ring-1 ring-inset ring-white/10 focus:ring-2 focus:ring-inset focus:ring-indigo-600 sm:text-sm sm:leading-6 px-3 resize-y overflow-y-auto h-12"
-                  placeholder="Optionally enter any disability you want considered"
-                  value={disabilities}
-                  onChange={(e) => {
-                    setDisabilities(e.target.value);
-                    if (formError) setFormError("");
-                  }}
-                />
-              </div>
-            </div>
-
-            <div>
-              <label
                 htmlFor="style"
                 className="block text-sm font-medium leading-6 text-white"
               >
@@ -210,22 +186,56 @@ const Create = () => {
               </div>
             </div>
 
-            <div className="flex items-center">
-              <input
-                id="private"
-                name="private"
-                type="checkbox"
-                className="h-4 w-4 rounded border-gray-300 text-indigo-600 focus:ring-indigo-600"
-                checked={isPrivate}
-                onChange={(e) => setIsPrivate(e.target.checked)}
-              />
-              <label
-                htmlFor="private"
-                className="ml-2 block text-sm text-white"
+            <div className="flex items-center justify-between">
+              <div className="flex items-center">
+                <input
+                  id="private"
+                  name="private"
+                  type="checkbox"
+                  className="h-4 w-4 rounded border-gray-300 text-indigo-600 focus:ring-indigo-600"
+                  checked={isPrivate}
+                  onChange={(e) => setIsPrivate(e.target.checked)}
+                />
+                <label
+                  htmlFor="private"
+                  className="ml-2 block text-sm text-white"
+                >
+                  Private
+                </label>
+              </div>
+              <button
+                type="button"
+                onClick={() => setShowDisabilityInput(!showDisabilityInput)}
+                className="text-sm text-indigo-400 hover:text-indigo-300"
               >
-                Private
-              </label>
+                {showDisabilityInput ? "Hide Accessibility Options" : "Show Accessibility Options"}
+              </button>
             </div>
+
+            {showDisabilityInput && (
+              <div>
+                <label
+                  htmlFor="disability"
+                  className="block text-sm font-medium leading-6 text-white"
+                >
+                  Accessibility Options
+                </label>
+                <div className="mt-2">
+                  <textarea
+                    id="disability"
+                    name="disability"
+                    autoComplete="disability"
+                    className="block w-full rounded-md border-0 bg-white/5 py-1.5 text-white shadow-sm ring-1 ring-inset ring-white/10 focus:ring-2 focus:ring-inset focus:ring-indigo-600 sm:text-sm sm:leading-6 px-3 resize-y overflow-y-auto h-16"
+                    placeholder="Enter any consideration (e.g., color blindness, dyslexia) for tailored experience."
+                    value={disabilities}
+                    onChange={(e) => {
+                      setDisabilities(e.target.value);
+                      if (formError) setFormError("");
+                    }}
+                  />
+                </div>
+              </div>
+            )}
 
             <div>
               <SplashButton
