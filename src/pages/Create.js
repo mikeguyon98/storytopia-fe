@@ -5,6 +5,7 @@ import { SplashButton } from "../components/buttons/SplashButton";
 import SelectComponent from "../components/select/SelectComponent";
 import axios from "axios";
 import { useAuth } from "../AuthProvider";
+import { X } from 'lucide-react'; // Import the X icon from lucide-react
 
 const BASE_URL = "https://storytopia-fastapi-kgdwevjo6a-ue.a.run.app";
 
@@ -106,6 +107,10 @@ const Create = () => {
 
   const handleSelectRecommendation = (recommendation) => {
     setStoryPrompt(recommendation);
+  };
+
+  const handleCloseRecommendations = () => {
+    setShowRecommendations(false);
   };
 
   return (
@@ -251,7 +256,14 @@ const Create = () => {
           {/* Recommendations */}
           {showRecommendations && (
             <div className="absolute left-full top-0 ml-6 w-80">
-              <div className="bg-gray-800 p-5 rounded-lg shadow-lg">
+              <div className="bg-gray-800 p-5 rounded-lg shadow-lg relative">
+                <button
+                  onClick={handleCloseRecommendations}
+                  className="absolute top-2 right-2 text-gray-400 hover:text-white"
+                  aria-label="Close recommendations"
+                >
+                  <X size={20} />
+                </button>
                 <h3 className="text-white font-semibold mb-3 text-lg">Recommendations:</h3>
                 {recommendationQuery.isLoading ? (
                   <p className="text-white text-sm">Loading recommendations...</p>
