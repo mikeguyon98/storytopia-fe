@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import { useMutation } from "@tanstack/react-query";
+import { useMutation, useQuery } from "@tanstack/react-query";
 import Page from "../components/utils/Page";
 import { SplashButton } from "../components/buttons/SplashButton";
 import SelectComponent from "../components/select/SelectComponent";
@@ -7,7 +7,6 @@ import axios from "axios";
 import { useAuth } from "../AuthProvider";
 
 const BASE_URL = "https://storytopia-fastapi-kgdwevjo6a-ue.a.run.app";
-// const BASE_URL ="http://127.0.0.1:8000"
 
 const Create = () => {
   const [selectedStyle, setSelectedStyle] = useState("");
@@ -16,6 +15,7 @@ const Create = () => {
   const [isPrivate, setIsPrivate] = useState(false);
   const [formError, setFormError] = useState("");
   const [submissionStatus, setSubmissionStatus] = useState("");
+  const [showRecommendations, setShowRecommendations] = useState(false);
   const { currentUser } = useAuth();
 
   const createStoryMutation = useMutation({
@@ -32,7 +32,6 @@ const Create = () => {
       );
     },
     onSuccess: () => {
-      // Reset form fields on success
       setStoryPrompt("");
       setSelectedStyle("");
       setDisabilities("");
@@ -46,15 +45,32 @@ const Create = () => {
     },
   });
 
+  const recommendationQuery = useQuery({
+    queryKey: ["recommendations"],
+    queryFn: async () => {
+      if (!currentUser) {
+        throw new Error("User not authenticated");
+      }
+      const token = await currentUser.getIdToken();
+      const response = await axios.post(`${BASE_URL}/stories/recommendations`, null, {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      });
+      return response.data;
+    },
+    enabled: false,
+  });
+
   const handleStyleChange = (style) => {
     setSelectedStyle(style);
-    if (formError) setFormError(""); // Clear error when style is selected
+    if (formError) setFormError("");
   };
 
   const handleSubmit = (e) => {
     e.preventDefault();
-    setFormError(""); // Clear any existing form errors
-    setSubmissionStatus(""); // Clear any existing submission status
+    setFormError("");
+    setSubmissionStatus("");
 
     if (!storyPrompt.trim()) {
       setFormError("Please enter a story description.");
@@ -66,7 +82,6 @@ const Create = () => {
       return;
     }
 
-    // Set submission status immediately
     setSubmissionStatus(
       "Your story generation request has been submitted. You will be notified via email once your story is ready."
     );
@@ -79,16 +94,30 @@ const Create = () => {
     });
   };
 
+  const handleGetRecommendations = () => {
+    if (currentUser) {
+      setShowRecommendations(true);
+      recommendationQuery.refetch();
+    } else {
+      setFormError("Please sign in to get recommendations.");
+    }
+  };
+
+  const handleSelectRecommendation = (recommendation) => {
+    setStoryPrompt(recommendation);
+    // Removed: setShowRecommendations(false);
+  };
+
   return (
     <Page>
-      <div className="flex min-h-full flex-1 flex-col justify-center px-6 py-12 lg:px-8">
+      <div className="flex min-h-full flex-1 flex-col px-6 py-12 lg:px-8">
         <div className="sm:mx-auto sm:w-full sm:max-w-sm">
-          <h2 className="mt-10 text-center text-2xl font-bold leading-9 tracking-tight text-white">
+          <h2 className="text-center text-2xl font-bold leading-9 tracking-tight text-white">
             Create a Story
           </h2>
         </div>
 
-        <div className="mt-10 sm:mx-auto sm:w-full sm:max-w-sm">
+        <div className="mt-10 sm:mx-auto sm:w-full sm:max-w-sm relative">
           {formError && (
             <div
               className="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded relative mb-4"
@@ -124,15 +153,25 @@ const Create = () => {
                   value={storyPrompt}
                   onChange={(e) => {
                     setStoryPrompt(e.target.value);
-                    if (formError) setFormError(""); // Clear error when user types
+                    if (formError) setFormError("");
                   }}
                 />
               </div>
             </div>
 
             <div>
+              <SplashButton
+                type="button"
+                className="w-full"
+                onClick={handleGetRecommendations}
+              >
+                Get Recommendations
+              </SplashButton>
+            </div>
+
+            <div>
               <label
-                htmlFor="story"
+                htmlFor="disability"
                 className="block text-sm font-medium leading-6 text-white"
               >
                 Specify Any Disabilities to Enhance Your Story Experience (e.g.,
@@ -143,13 +182,12 @@ const Create = () => {
                   id="disability"
                   name="disability"
                   autoComplete="disability"
-                  optional
                   className="block w-full rounded-md border-0 bg-white/5 py-1.5 text-white shadow-sm ring-1 ring-inset ring-white/10 focus:ring-2 focus:ring-inset focus:ring-indigo-600 sm:text-sm sm:leading-6 px-3 resize-y overflow-y-auto h-12"
                   placeholder="Optionally enter any disability you want considered"
                   value={disabilities}
                   onChange={(e) => {
                     setDisabilities(e.target.value);
-                    if (formError) setFormError(""); // Clear error when user types
+                    if (formError) setFormError("");
                   }}
                 />
               </div>
@@ -199,6 +237,32 @@ const Create = () => {
               </SplashButton>
             </div>
           </form>
+
+          {/* Recommendations */}
+          {showRecommendations && (
+            <div className="absolute left-full top-0 ml-6 w-80">
+              <div className="bg-gray-800 p-5 rounded-lg shadow-lg">
+                <h3 className="text-white font-semibold mb-3 text-lg">Recommendations:</h3>
+                {recommendationQuery.isLoading ? (
+                  <p className="text-white text-sm">Loading recommendations...</p>
+                ) : recommendationQuery.isError ? (
+                  <p className="text-red-500 text-sm">Error loading recommendations. Please try again.</p>
+                ) : recommendationQuery.data ? (
+                  <ul className="space-y-3">
+                    {recommendationQuery.data.recommendation.split('\n').map((rec, index) => (
+                      <li
+                        key={index}
+                        className="text-white text-sm cursor-pointer hover:text-indigo-400 transition-colors duration-200 bg-gray-700 p-2 rounded"
+                        onClick={() => handleSelectRecommendation(rec.trim())}
+                      >
+                        {rec.trim()}
+                      </li>
+                    ))}
+                  </ul>
+                ) : null}
+              </div>
+            </div>
+          )}
         </div>
       </div>
     </Page>
