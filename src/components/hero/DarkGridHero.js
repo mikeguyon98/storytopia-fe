@@ -77,9 +77,45 @@ const Content = () => {
           delay: 0.5,
           ease: "easeInOut",
         }}
+        className="max-w-2xl text-center text-base leading-relaxed text-zinc-400 sm:text-lg md:text-lg md:leading-relaxed"
+      >
+        Tired of drowning in jargon? 
+      </motion.p>
+      <motion.p
+        initial={{
+          y: 25,
+          opacity: 0,
+        }}
+        animate={{
+          y: 0,
+          opacity: 1,
+        }}
+        transition={{
+          duration: 1.25,
+          delay: 0.5,
+          ease: "easeInOut",
+        }}
+        className="max-w-2xl text-center text-base leading-relaxed text-zinc-400 sm:text-lg md:text-lg md:leading-relaxed"
+      >
+        Enter any topic and watch abstract concepts unravel into vivid stories.
+      </motion.p>
+      <motion.p
+        initial={{
+          y: 25,
+          opacity: 0,
+        }}
+        animate={{
+          y: 0,
+          opacity: 1,
+        }}
+        transition={{
+          duration: 1.25,
+          delay: 0.5,
+          ease: "easeInOut",
+        }}
         className="mb-9 max-w-2xl text-center text-base leading-relaxed text-zinc-400 sm:text-lg md:text-lg md:leading-relaxed"
       >
-        Storytopia is your gateway to creating personalized, AI-powered stories. Enter a topic or prompt, and let our app generate a captivating story just for you. Whether you're simplifying complex topics or just enjoying a fun tale, Storytopia makes it easy to create, share, and connect.
+        Simplify learning – one story at a time.
       </motion.p>
       <motion.div
         initial={{
