@@ -16,16 +16,6 @@ export const DarkGridHero = () => {
 };
 
 const Content = () => {
-  const navigate = useNavigate();
-
-  const handleSplashButtonClick = () => {
-    navigate("/signup");
-  };
-
-  const handleGhostButtonClick = () => {
-    navigate("/signin");
-  };
-
   return (
     <div className="relative z-20 mx-auto flex max-w-6xl flex-col items-center justify-center px-4 py-24 md:px-8 md:py-36 h-[100vh]">
       <motion.div
@@ -43,7 +33,7 @@ const Content = () => {
         }}
         className="relative"
       >
-        <GlowingChip>Discover Your Next Adventure ✨</GlowingChip>
+        <GlowingChip>Enter Storytopia ✨</GlowingChip>
       </motion.div>
       <motion.h1
         initial={{
@@ -117,30 +107,6 @@ const Content = () => {
       >
         Simplify learning – one story at a time.
       </motion.p>
-      <motion.div
-        initial={{
-          y: 25,
-          opacity: 0,
-        }}
-        animate={{
-          y: 0,
-          opacity: 1,
-        }}
-        transition={{
-          duration: 1.25,
-          delay: 0.75,
-          ease: "easeInOut",
-        }}
-        className="flex flex-col items-center gap-6 sm:flex-row"
-      >
-        <SplashButton className="flex items-center gap-2" onClick={handleSplashButtonClick}>
-          Sign Up
-          <FiArrowRight />
-        </SplashButton>
-        <GhostButton className="rounded-md px-4 py-2 text-zinc-100" onClick={handleGhostButtonClick}>
-          Sign In
-        </GhostButton>
-      </motion.div>
     </div>
   );
 };
