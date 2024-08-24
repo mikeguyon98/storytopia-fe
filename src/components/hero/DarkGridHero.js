@@ -89,23 +89,6 @@ const Content = () => {
       >
         Enter Storytopia: learn anything like reading a comic book
       </motion.p>
-      <motion.p
-        initial={{
-          y: 25,
-          opacity: 0,
-        }}
-        animate={{
-          y: 0,
-          opacity: 1,
-        }}
-        transition={{
-          duration: 1.25,
-          delay: 0.5,
-          ease: "easeInOut",
-        }}
-        className="mb-9 max-w-2xl text-center text-base leading-relaxed text-zinc-400 sm:text-lg md:text-lg md:leading-relaxed"
-      >
-      </motion.p>
     </div>
   );
 };
