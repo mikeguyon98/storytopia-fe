@@ -87,7 +87,7 @@ const Content = () => {
         }}
         className="max-w-2xl text-center text-base leading-relaxed text-zinc-400 sm:text-lg md:text-lg md:leading-relaxed"
       >
-        Enter any topic and watch abstract concepts unravel into vivid stories.
+        Enter Storytopia: learn anything like reading a comic book
       </motion.p>
       <motion.p
         initial={{
@@ -105,7 +105,6 @@ const Content = () => {
         }}
         className="mb-9 max-w-2xl text-center text-base leading-relaxed text-zinc-400 sm:text-lg md:text-lg md:leading-relaxed"
       >
-        Simplify learning – one story at a time.
       </motion.p>
     </div>
   );
